@@ -266,6 +266,16 @@ public class Controller {
 
 		}
 	}
+	
+	@FXML
+	public void submitRecord(){
+		
+	}
+	
+	@FXML
+	public void submitUser(){
+		
+	}
 
 	/**
 	 * Update the {@link ImageView} in the JavaFX main thread
