@@ -30,7 +30,7 @@ public class User {
 	/**
 	 * @return the uid
 	 */
-	public IntegerProperty getUid() {
+	public IntegerProperty getUID() {
 		return uid;
 	}
 
@@ -55,13 +55,7 @@ public class User {
 		return gender;
 	}
 
-	/**
-	 * @param uid
-	 *            the uid to set
-	 */
-	public void setUid(IntegerProperty uid) {
-		this.uid = uid;
-	}
+
 
 	/**
 	 * @param name

@@ -22,18 +22,30 @@ public class UserDAO {
 		stmt = DBManager.createStmt(con);
 	}
 
-	// insert an user to User table
-	public void insertUser(int uid, String name, String gender, String program) {
+	/**
+	 * insert an user and return the incremented UID.
+	 * @param name
+	 * @param gender
+	 * @param program
+	 * @return
+	 */
+	public int insertUser(String name, String gender, String program) {
+		int uid = -1;
 		try {
 
-			String query = "INSERT INTO `Users` (`UID`, `Name`, `Gender`, `Program`,`Photo`) VALUES ('" + uid + "', '" + name
+			String insert = "INSERT INTO `Users` ( `Name`, `Gender`, `Program`) VALUES ('" + name
 					+ "', '" + gender + "', '" + program + "')";
-
-			stmt.executeUpdate(query);
+			String query = "SELECT MAX(UID) FROM `Users`";
+			stmt.executeUpdate(insert);
+			ResultSet rs = stmt.executeQuery(query);	
+			if(rs.next()) {
+				uid = rs.getInt("MAX(UID)");
+			}
 
 		} catch (SQLException se) {
 			System.out.println(se);
 		}
+		return uid;
 	}
 
 	// get one or more User objects in an array list by a given condition
