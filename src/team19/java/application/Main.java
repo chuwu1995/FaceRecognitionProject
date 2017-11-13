@@ -11,6 +11,7 @@ public class Main extends Application {
 	@Override
 	public void start(Stage stage) {
 		try {
+			Application.setUserAgentStylesheet(STYLESHEET_MODENA);
 			HBox root = (HBox)FXMLLoader.load(getClass().getResource("Main.fxml"));
 			Scene scene = new Scene(root);
 			stage.setTitle("Face Recognition System");

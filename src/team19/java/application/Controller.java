@@ -10,7 +10,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfRect;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
+import org.opencv.objdetect.Objdetect;
 import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
@@ -74,17 +81,24 @@ public class Controller {
 	
 	@FXML
 	private Pane containerPane;
+	
 	// add user pane
 	@FXML
 	private Pane addUserPane; 
 	@FXML
 	private TextField nameInput;
 	@FXML
-	private ChoiceBox genderChoiceBox;
+	private ChoiceBox<String> genderChoiceBox;
 	@FXML
-	private ChoiceBox programChoiceBox;
+	private ChoiceBox<String> programChoiceBox;
 	@FXML
 	private Button submitUserBtn;
+	@FXML
+	private Button submitUserInfoBtn;
+	@FXML
+	private Button catchImageBtn;
+	private boolean catchImageFlag;
+	
 
 	// add record pane
 	@FXML 
@@ -120,6 +134,7 @@ public class Controller {
 		// initialize capture
 		this.capture = new VideoCapture();
 		this.faceCascade = new CascadeClassifier();
+		this.faceCascade.load("lib/FaceDetectionClassifier/lbpcascade_frontalface.xml");
 		this.absoluteFaceSize = 0;
 
 		// initialize panes
@@ -129,6 +144,9 @@ public class Controller {
 		
 		// initialize choice box
 		initSalaryChoiceBox();
+		initGenderChoiceBox();
+		initProgramChoiceBox();
+
 	}
 
 	@FXML
@@ -162,7 +180,6 @@ public class Controller {
 
 				this.timer = Executors.newSingleThreadScheduledExecutor();
 				this.timer.scheduleAtFixedRate(frameGrabber, 0, 33, TimeUnit.MILLISECONDS);
-
 				// update the button content
 				this.startBtn.setText("Stop");
 			} else {
@@ -250,31 +267,44 @@ public class Controller {
 		if (!addRecordActive) {
 			analyticBtn.setDisable(true);
 			addUserBtn.setDisable(true);
-
-			
+	
 			addRecordActive = true;
 			addRecordPane.setVisible(true);
 		} else {
 			
-
 			addRecordActive = false;
 			addRecordPane.setVisible(false);
 			
 			analyticBtn.setDisable(false);
 			addUserBtn.setDisable(false);
 
-
 		}
 	}
 	
 	@FXML
 	public void submitRecord(){
-		
+		testInfo.setText("submit record");
+
 	}
 	
 	@FXML
 	public void submitUser(){
-		
+		testInfo.setText("submit user btn");
+
+	}
+	
+	@FXML
+	public void submitUserInfo(){
+		testInfo.setText("submit user info");
+
+	}
+	@FXML
+	public void catchImage(){
+		if(cameraActive){
+			catchImageFlag = true;
+			testInfo.setText("catch image");
+
+		}	
 	}
 
 	/**
@@ -307,8 +337,15 @@ public class Controller {
 
 				// if the frame is not empty, process it
 				if (!frame.empty()) {
-					// face detection
-					// this.detectAndDisplay(frame);
+					detectFace(frame);
+					// recognizeFace();
+					// 
+					if(catchImageFlag) {
+						int uid = 1111111;
+						exportProfilePhoto(frame,uid);
+						Thread.sleep(1000);
+						catchImageFlag = false;
+					}
 				}
 
 			} catch (Exception e) {
@@ -354,5 +391,90 @@ public class Controller {
 		reasonChoiceBox.setValue("Meet With A Person");
 		reasonChoiceBox.setItems(reasonChoiceBoxItem);
 	}
+private void initGenderChoiceBox(){
+	ObservableList<String> genderChoiceBoxItem = FXCollections.observableArrayList();
+	genderChoiceBoxItem.add("Male");
+	genderChoiceBoxItem.add("Female");
+	
+
+	genderChoiceBox.setValue("Male");
+	genderChoiceBox.setItems(genderChoiceBoxItem);
+}
+
+private void initProgramChoiceBox(){
+	ObservableList<String> programChoiceBoxItem = FXCollections.observableArrayList();
+	programChoiceBoxItem.add("MISM");
+	programChoiceBoxItem.add("MSIT");
+	programChoiceBoxItem.add("MSPPM");
+	
+
+	programChoiceBox.setValue("MISM");
+	programChoiceBox.setItems(programChoiceBoxItem);
+}
+
+/**
+ * out put profile photo, name is uid
+ * @param photo
+ */
+private void exportProfilePhoto (Mat photo, int uid){
+
+	String path = "resource/photo/"+uid+".jpg";
+	Imgcodecs.imwrite(path, photo);
+}
+
+
+/**
+ * Method for face detection and tracking
+ * 
+ * @param frame
+ *            it looks for faces in this frame
+ */
+private void detectFace(Mat frame)
+{
+	
+		MatOfRect faces = new MatOfRect();
+		Mat grayFrame = new Mat();
+		
+		// convert the frame in gray scale
+		Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);
+		// equalize the frame histogram to improve the result
+		Imgproc.equalizeHist(grayFrame, grayFrame);
+		testInfo.setText("gray and equalize");
+
+		// compute minimum face size (20% of the frame height, in our case)
+		if (this.absoluteFaceSize == 0)
+		{
+			int height = grayFrame.rows();
+			if (Math.round(height * 0.2f) > 0)
+			{
+				this.absoluteFaceSize = Math.round(height * 0.2f);
+			}
+		}
+		testInfo.setText("2");
+
+		
+		// detect faces
+		this.faceCascade.detectMultiScale(grayFrame, faces, 1.1, 2, 0 | Objdetect.CASCADE_SCALE_IMAGE,
+				new Size(this.absoluteFaceSize, this.absoluteFaceSize), new Size());
+		testInfo.setText("3");
+
+		// each rectangle in faces is a face: draw them!
+		Rect[] facesArray = faces.toArray();
+		for (int i = 0; i < facesArray.length; i++)
+			Imgproc.rectangle(frame, facesArray[i].tl(), facesArray[i].br(), new Scalar(0, 255, 0), 3);
+	
+	
+		
+}
+
+
+
+
+
+
+
+
+
+
 
 }
