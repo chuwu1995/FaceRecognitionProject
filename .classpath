@@ -9,5 +9,6 @@
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="/Users/wuchu/eclipse/java-neon/opencvtest6/opencv-master/build/lib"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Derby"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

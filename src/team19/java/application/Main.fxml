@@ -95,7 +95,7 @@
                               </Button>
                               <ChoiceBox fx:id="genderChoiceBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                               <ChoiceBox fx:id="programChoiceBox" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                              <Button fx:id="catchImageBtn" mnemonicParsing="false" onAction="#catchImage" text="Catch Image" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                              <Button fx:id="catchImageBtn" mnemonicParsing="false" onAction="#catchImage" text="Catch Profile" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                               <Button fx:id="submitUserBtn" mnemonicParsing="false" onAction="#submitUser" text="Submit" GridPane.columnIndex="1" GridPane.rowIndex="4">
                                  <GridPane.margin>
                                     <Insets left="121.0" />

@@ -10,14 +10,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfRect;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.core.Size;
+
 import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
-import org.opencv.objdetect.CascadeClassifier;
-import org.opencv.objdetect.Objdetect;
+
 import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
@@ -99,7 +94,9 @@ public class Controller {
 	private Button submitUserInfoBtn;
 	@FXML
 	private Button catchImageBtn;
-	private boolean catchImageFlag;
+	private boolean catchProfileImageFlag;
+	private boolean catchTrainingImageFlag;
+
 	
 
 	// add record pane
@@ -119,6 +116,7 @@ public class Controller {
 	private boolean analyticActive;
 	private boolean addUserActive;
 	private boolean addRecordActive;
+	private boolean userRecognized;
 
 
 
@@ -301,7 +299,7 @@ public class Controller {
 	@FXML
 	public void catchImage(){
 		if(cameraActive){
-			catchImageFlag = true;
+			catchProfileImageFlag = true;
 			testInfo.setText("catch image");
 
 		}	
@@ -338,13 +336,14 @@ public class Controller {
 				// if the frame is not empty, process it
 				if (!frame.empty()) {
 					detector.detectFace(frame);
+					int uid = 1111111;
+
 					// recognizeFace();
 					// 
-					if(catchImageFlag) {
-						int uid = 1111111;
+					if(catchProfileImageFlag) {
 						exportProfilePhoto(frame,uid);
 						Thread.sleep(1000);
-						catchImageFlag = false;
+						catchProfileImageFlag = false;
 					}
 				}
 

@@ -16,27 +16,26 @@ public class DBManager {
 
 	private static Connection con = null;
 
-	// private static final String driver = "org.apache.derby.jdbc.EmbeddedDriver";// edit it to your driver
-	 private static final String driver = "com.mysql.jdbc.Driver";
-	private static final String url = "jdbc:mysql://localhost:3306/FaceRecognitionDB";// edit
+	// private static final String driver =
+	// "org.apache.derby.jdbc.EmbeddedDriver";// edit it to your driver
+	private static final String driver = "com.mysql.jdbc.Driver";
+	private static final String url = "jdbc:derby:FaceRecognitionDB;create=true;user=chuw;password=chuw";// edit
 																						// it
 																						// to
 																						// your
 																						// own
-																						// database
-	String username = "chuw";// database username
-	String password = "chuw";// database password
+																						// datab
 
 	private UserDAO udao = null;
 	private RecordDAO rdao = null;
-
+	private tableManager tm = null;
 	// establish connection
 	public DBManager() {
 		if (!dbExists()) {
 			try {
 				Class.forName(driver);
 
-				con = DriverManager.getConnection(url, username, password);
+				con = DriverManager.getConnection(url);
 
 			} catch (ClassNotFoundException ce) {
 				System.out.println(ce);
@@ -45,9 +44,10 @@ public class DBManager {
 				System.out.println(se);
 			}
 		}
-		
+
 		udao = new UserDAO(con);
 		rdao = new RecordDAO(con);
+		tm = new tableManager(con);
 
 	}
 
@@ -81,18 +81,25 @@ public class DBManager {
 	public RecordDAO getRecordDAO() {
 		return rdao;
 	}
+	// get data access object
+		public tableManager getTableManager() {
+			return tm;
+		}
 
 	// test if database exists
 	private Boolean dbExists() {
 		Boolean exists = false;
 		try {
 			Class.forName(driver);
-			con = DriverManager.getConnection(url, username, password);
+			con = DriverManager.getConnection(url);
 			exists = true;
 		} catch (Exception e) {
-			System.out.println("not exists");; // Do nothing, as DB does not (yet) exist
+			System.out.println("not exists");
+			; // Do nothing, as DB does not (yet) exist
 		}
 		return (exists);
 	}
+
+	
 
 }

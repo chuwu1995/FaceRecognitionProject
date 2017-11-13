@@ -45,6 +45,11 @@ public class Record {
 	public void setrid(IntegerProperty rid) {
 		this.rid = rid;
 	}
+	
+
+
+
+
 
 
 
@@ -98,6 +103,14 @@ public class Record {
 	 */
 	public void setReason(StringProperty reason) {
 		this.reason = reason;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Record [rid=" + rid.getValue() + ", uid=" + uid.getValue() + ", date=" + date.getValue() + ", reason=" + reason.getValue() + "]";
 	}
 	
 }

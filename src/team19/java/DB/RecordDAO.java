@@ -23,12 +23,18 @@ public class RecordDAO {
 
 	// get Record objects by user id
 	public ArrayList<Record> getRecordsByUID(int uid) {
-		String query = "SELECT * FROM `Records` WHERE `UID` = " + uid;
+		String query = "SELECT * FROM Records WHERE UID = " + uid;
 		return getRecordData(query);
 	}
 
+	// get All Record objects 
+	public ArrayList<Record> getAllRecords() {
+		String query = "SELECT * FROM Records";
+		return getRecordData(query);
+	}
+	
 	public ArrayList<Record> getLastRecordByUID(int uid) {
-		String query = "SELECT * FROM `Records` WHERE `Date`= (SELECT MAX(Date) FROM `Record` WHERE `UID` = " + uid + ")";
+		String query = "SELECT * FROM Records WHERE Date= (SELECT MAX(Date) FROM Record WHERE UID = " + uid + ")";
 		return getRecordData(query);
 	}
 
@@ -38,8 +44,24 @@ public class RecordDAO {
 		// data is the current time
 		try {
 
-			String query = "INSERT INTO `Records` (`UID`, `Date`, `Reason`) VALUES ('" + uid + "', '"
+			String query = "INSERT INTO Records (UID, Date, Reason) VALUES (" + uid + ", '"
 					+ DateController.getCurrentTime() + "', '" + reason + "')";
+
+			stmt.executeUpdate(query);
+
+		} catch (SQLException se) {
+			System.out.println(se);
+		}
+	}
+	
+	/**
+	 * delete a record
+	 * @param rid
+	 */
+	public void deleteRecord(int rid){
+		try {
+
+			String query = "DELETE FROM RECORDS WHERE RID = " + rid;
 
 			stmt.executeUpdate(query);
 

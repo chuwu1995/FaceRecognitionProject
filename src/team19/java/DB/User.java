@@ -81,4 +81,14 @@ public class User {
 		this.gender = gender;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "User [uid=" + uid.getValue() + ", name=" + name.getValue() + ", program=" + program.getValue() + ", gender=" + gender.getValue() + "]";
+	}
+	
+	
+
 }

@@ -33,25 +33,40 @@ public class UserDAO {
 		int uid = -1;
 		try {
 
-			String insert = "INSERT INTO `Users` ( `Name`, `Gender`, `Program`) VALUES ('" + name
+			String insert = "INSERT INTO Users (Name, Gender, Program) VALUES ('" + name
 					+ "', '" + gender + "', '" + program + "')";
-			String query = "SELECT MAX(UID) FROM `Users`";
-			stmt.executeUpdate(insert);
-			ResultSet rs = stmt.executeQuery(query);	
-			if(rs.next()) {
-				uid = rs.getInt("MAX(UID)");
-			}
+		
+			stmt.executeUpdate(insert,Statement.RETURN_GENERATED_KEYS);
+		
+			ResultSet rs = stmt.getGeneratedKeys();	
+			if(rs.next())
+				uid = rs.getInt(1);
+			
 
 		} catch (SQLException se) {
 			System.out.println(se);
 		}
 		return uid;
 	}
+	
+	
+	public void deleteUser(int uid){
+		try {
+
+			String query = "DELETE FROM USERS WHERE UID = " + uid;
+
+			stmt.executeUpdate(query);
+			new DBManager().getRecordDAO().deleteRecord(uid);
+
+		} catch (SQLException se) {
+			System.out.println(se);
+		}
+	}
 
 	// get one or more User objects in an array list by a given condition
 	public ArrayList<User> getUserByCondition(String condition) {
 
-		String query = "SELECT * FROM `Users` WHERE" + condition;
+		String query = "SELECT * FROM Users WHERE" + condition;
 
 		return getUserData(query);
 
@@ -60,7 +75,7 @@ public class UserDAO {
 	// get all User objects from the User table
 	public ArrayList<User> getAllUser() {
 
-		String query = "SELECT * FROM `Users`";
+		String query = "SELECT * FROM Users";
 
 		return getUserData(query);
 
