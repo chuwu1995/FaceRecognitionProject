@@ -34,6 +34,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.text.Text;
+import team19.java.core.Detector;
 import team19.java.util.ImageProcessing;
 
 /**
@@ -42,6 +43,7 @@ import team19.java.util.ImageProcessing;
  * 
  */
 public class Controller {
+	private Detector detector;
 	@FXML
 	private Text testInfo;
 
@@ -118,9 +120,7 @@ public class Controller {
 	private boolean addUserActive;
 	private boolean addRecordActive;
 
-	// face cascade classifier
-	private CascadeClassifier faceCascade;
-	private int absoluteFaceSize;
+
 
 	/**
 	 * Init the controller, at start time
@@ -133,9 +133,9 @@ public class Controller {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		// initialize capture
 		this.capture = new VideoCapture();
-		this.faceCascade = new CascadeClassifier();
-		this.faceCascade.load("lib/FaceDetectionClassifier/lbpcascade_frontalface.xml");
-		this.absoluteFaceSize = 0;
+		
+		// initialize detector
+		this.detector = new Detector();
 
 		// initialize panes
 		analyticGridPane.setVisible(false);
@@ -337,7 +337,7 @@ public class Controller {
 
 				// if the frame is not empty, process it
 				if (!frame.empty()) {
-					detectFace(frame);
+					detector.detectFace(frame);
 					// recognizeFace();
 					// 
 					if(catchImageFlag) {
@@ -423,49 +423,7 @@ private void exportProfilePhoto (Mat photo, int uid){
 }
 
 
-/**
- * Method for face detection and tracking
- * 
- * @param frame
- *            it looks for faces in this frame
- */
-private void detectFace(Mat frame)
-{
-	
-		MatOfRect faces = new MatOfRect();
-		Mat grayFrame = new Mat();
-		
-		// convert the frame in gray scale
-		Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);
-		// equalize the frame histogram to improve the result
-		Imgproc.equalizeHist(grayFrame, grayFrame);
-		testInfo.setText("gray and equalize");
 
-		// compute minimum face size (20% of the frame height, in our case)
-		if (this.absoluteFaceSize == 0)
-		{
-			int height = grayFrame.rows();
-			if (Math.round(height * 0.2f) > 0)
-			{
-				this.absoluteFaceSize = Math.round(height * 0.2f);
-			}
-		}
-		testInfo.setText("2");
-
-		
-		// detect faces
-		this.faceCascade.detectMultiScale(grayFrame, faces, 1.1, 2, 0 | Objdetect.CASCADE_SCALE_IMAGE,
-				new Size(this.absoluteFaceSize, this.absoluteFaceSize), new Size());
-		testInfo.setText("3");
-
-		// each rectangle in faces is a face: draw them!
-		Rect[] facesArray = faces.toArray();
-		for (int i = 0; i < facesArray.length; i++)
-			Imgproc.rectangle(frame, facesArray[i].tl(), facesArray[i].br(), new Scalar(0, 255, 0), 3);
-	
-	
-		
-}
 
 
 
