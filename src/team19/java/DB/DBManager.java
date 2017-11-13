@@ -18,7 +18,7 @@ public class DBManager {
 
 	// private static final String driver =
 	// "org.apache.derby.jdbc.EmbeddedDriver";// edit it to your driver
-	private static final String driver = "com.mysql.jdbc.Driver";
+	private static final String driver = "org.apache.derby.jdbc.EmbeddedDriver";
 	private static final String url = "jdbc:derby:FaceRecognitionDB;create=true;user=chuw;password=chuw";// edit
 																						// it
 																						// to
