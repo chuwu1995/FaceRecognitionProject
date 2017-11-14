@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
-Tue Nov 14 16:00:54 ACDT 2017:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.1.0 - (1808820): instance a816c00e-015f-b902-4357-000006b53a70 
+Tue Nov 14 21:15:55 ACDT 2017:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.1.0 - (1808820): instance a816c00e-015f-ba22-aaa5-000006b4fad0 
 on database directory /Users/wuchu/Documents/workspace/FaceRecognition/FaceRecognitionDB with class loader sun.misc.Launcher$AppClassLoader@4554617c 
 Loaded from file:/Users/wuchu/Documents/workspace/FaceRecognition/resource/DerbyJar/derby.jar
 java.vendor=Oracle Corporation

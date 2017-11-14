@@ -11,9 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.Rect;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
@@ -24,7 +22,6 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -33,10 +30,10 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import team19.java.DB.DBManager;
+import team19.java.DB.Record;
 import team19.java.DB.User;
 import team19.java.core.Detector;
 import team19.java.util.ImageProcessing;
@@ -66,11 +63,11 @@ public class Controller {
 	@FXML
 	private ImageView photo;
 	@FXML
-	private Text name;
+	private Text nameDashBoard;
 	@FXML
-	private Text gender;
+	private Text genderDashBoard;
 	@FXML
-	private Text program;
+	private Text programDashBoard;
 	@FXML
 	private Text lastDate;
 	@FXML
@@ -78,11 +75,11 @@ public class Controller {
 	@FXML
 	private Text visitCount;
 	@FXML
-	private TableView recordTable;
+	private TableView<Record> recordTable;
 	@FXML
-	private TableColumn date;
+	private TableColumn<Record,String> dateCol;
 	@FXML
-	private TableColumn reason;
+	private TableColumn<Record,String> reasonCol;
 
 	@FXML
 	private GridPane analyticGridPane;
@@ -175,6 +172,11 @@ public class Controller {
 		defaultProfile = ImageProcessing.readImage("resource/Profile/DefaultPhoto.png");	
 		setProfile(defaultProfile);
 		setCatchImageView(defaultProfile);
+		
+		// initialize record table
+		initRecordTable();
+		
+		
 	}
 		
 	@FXML
@@ -332,6 +334,8 @@ public class Controller {
 		String gender = genderChoiceBox.getValue();
 		String program = programChoiceBox.getValue();
 		dbManager.getUserDAO().insertUser(name, gender, program);
+		
+		
 	}
 	@FXML
 	public void catchImage(){
@@ -488,6 +492,22 @@ private void setCatchImageView(Mat mat ) {
 	updateImageView(imageCatched,ImageProcessing.mat2Image(mat));
 }
 
+private void setDashBoardUserInfo(String name, String gender, String program) {
+	nameDashBoard.setText(name);
+	genderDashBoard.setText(gender);
+	programDashBoard.setText(program);
+}
+
+private void setDashBoardToDefault(){
+	nameDashBoard.setText("");
+	genderDashBoard.setText("");
+	programDashBoard.setText("");
+	lastDate.setText("");
+	lastReason.setText("");
+	visitCount.setText("");
+	recordTable.setItems(null);
+}
+
 @SuppressWarnings("unchecked")
 @FXML
 public void displayUsersTable(){
@@ -569,7 +589,26 @@ public void displayUsersTable(){
 }
 
 
-
+private void initRecordTable() {
+//	recordTable.setEditable(true);
+	recordTable.setTableMenuButtonVisible(true);
+//	reasonCol.setCellFactory(TextFieldTableCell.forTableColumn());
+	dateCol.setCellValueFactory(cellData -> cellData.getValue().getDate());
+	reasonCol.setCellValueFactory(cellData -> cellData.getValue().getReason());
+}
+/**
+ * update the record table
+ * 
+ * @param recordList
+ */
+private void updateRecordTable(ArrayList<Record> recordList) {
+	
+	ObservableList<Record> recordData = FXCollections.observableArrayList();
+	for (Record e : recordList)
+		recordData.add(e);
+	
+	recordTable.setItems(recordData);
+}
 
 
 

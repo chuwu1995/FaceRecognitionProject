@@ -156,9 +156,9 @@
                         <Label text="Name:" />
                         <Label text="Gender:" GridPane.rowIndex="2" />
                         <Label text="Program:" GridPane.rowIndex="1" />
-                        <Text fx:id="name" strokeType="OUTSIDE" strokeWidth="0.0" text="user name" GridPane.columnIndex="1" />
-                        <Text fx:id="program" strokeType="OUTSIDE" strokeWidth="0.0" text="MISM" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Text fx:id="gender" strokeType="OUTSIDE" strokeWidth="0.0" text="Female" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <Text fx:id="nameDashBoard" strokeType="OUTSIDE" strokeWidth="0.0" text="user name" GridPane.columnIndex="1" />
+                        <Text fx:id="programDashBorad" strokeType="OUTSIDE" strokeWidth="0.0" text="MISM" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Text fx:id="genderDashBoard" strokeType="OUTSIDE" strokeWidth="0.0" text="Female" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                      </children>
                   </GridPane>
                </children>
@@ -186,8 +186,8 @@
             <Separator prefWidth="200.0" />
             <TableView fx:id="recordTable" prefHeight="233.0" prefWidth="378.0">
               <columns>
-                <TableColumn fx:id="date" prefWidth="129.552490234375" text="Date" />
-                <TableColumn fx:id="reason" prefWidth="245.447509765625" text="Reason" />
+                <TableColumn fx:id="dateCol" prefWidth="129.552490234375" text="Date" />
+                <TableColumn fx:id="reasonCol" prefWidth="245.447509765625" text="Reason" />
               </columns>
             </TableView>
             <Text fx:id="testInfo" fill="#da3d19" strokeType="OUTSIDE" strokeWidth="0.0" text="testInfo" wrappingWidth="348.6829261779785">
