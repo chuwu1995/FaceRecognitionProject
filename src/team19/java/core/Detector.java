@@ -20,6 +20,7 @@ import org.opencv.objdetect.Objdetect;
  */
 public class Detector {
 
+	
 	private int absoluteFaceSize;
 	// face cascade classifier
 	private CascadeClassifier faceCascade;

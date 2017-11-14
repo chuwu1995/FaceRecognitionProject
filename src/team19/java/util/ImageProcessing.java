@@ -7,6 +7,9 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
@@ -16,6 +19,9 @@ import javafx.scene.image.Image;
  *  
  */
 public class ImageProcessing {
+	public static Size size_92_112 = new Size(92,112);
+	public static Size size_150_200 = new Size(150,200);
+
 	/**
 	 * Convert a Mat object (OpenCV) in the corresponding Image for JavaFX
 	 *
@@ -62,6 +68,20 @@ public class ImageProcessing {
 		final byte[] targetPixels = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 		System.arraycopy(sourcePixels, 0, targetPixels, 0, sourcePixels.length);
 		
+		return image;
+	}
+	
+	public static void resize(Mat src, Mat dst, Size dsize){
+		Imgproc.resize(src, dst, dsize);
+	}
+	
+	public static Mat readImage(String path) {
+		Mat image= Imgcodecs.imread(path);
+		return image;
+	}
+	
+	public static Mat readImageToGray(String path) {
+		Mat image= Imgcodecs.imread(path,Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 		return image;
 	}
 }

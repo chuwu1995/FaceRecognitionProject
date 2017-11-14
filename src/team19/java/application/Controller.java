@@ -4,31 +4,40 @@
 package team19.java.application;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-
+import org.opencv.core.Rect;
 import org.opencv.imgcodecs.Imgcodecs;
-
+import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
+import team19.java.DB.DBManager;
+import team19.java.DB.User;
 import team19.java.core.Detector;
 import team19.java.util.ImageProcessing;
 
@@ -38,7 +47,9 @@ import team19.java.util.ImageProcessing;
  * 
  */
 public class Controller {
+	private DBManager dbManager;
 	private Detector detector;
+	private Mat defaultProfile;
 	@FXML
 	private Text testInfo;
 
@@ -94,6 +105,11 @@ public class Controller {
 	private Button submitUserInfoBtn;
 	@FXML
 	private Button catchImageBtn;
+	@FXML
+	private Button catchTrainingImage;
+	@FXML
+	private ImageView imageCatched;
+	
 	private boolean catchProfileImageFlag;
 	private boolean catchTrainingImageFlag;
 
@@ -106,6 +122,13 @@ public class Controller {
 	private ChoiceBox<String> reasonChoiceBox;
 	@FXML
 	private Button submitRecordBtn;
+	
+	// user table 
+	@FXML 
+	private Button displayUsersBtn;
+	
+	
+	
 	
 	// a timer for acquiring the video stream
 	private ScheduledExecutorService timer;
@@ -129,6 +152,9 @@ public class Controller {
 	private void initialize() throws IOException {
 		// load opencv native library
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+		
+		// initialize dbManager
+		dbManager = new DBManager();
 		// initialize capture
 		this.capture = new VideoCapture();
 		
@@ -145,8 +171,12 @@ public class Controller {
 		initGenderChoiceBox();
 		initProgramChoiceBox();
 
+		// initialize default images
+		defaultProfile = ImageProcessing.readImage("resource/Profile/DefaultPhoto.png");	
+		setProfile(defaultProfile);
+		setCatchImageView(defaultProfile);
 	}
-
+		
 	@FXML
 	public void start() {
 
@@ -173,6 +203,7 @@ public class Controller {
 						// convert and show the frame
 						Image imageToShow = ImageProcessing.mat2Image(frame);
 						updateImageView(imageView, imageToShow);
+						
 					}
 				};
 
@@ -279,6 +310,7 @@ public class Controller {
 		}
 	}
 	
+	
 	@FXML
 	public void submitRecord(){
 		testInfo.setText("submit record");
@@ -294,7 +326,12 @@ public class Controller {
 	@FXML
 	public void submitUserInfo(){
 		testInfo.setText("submit user info");
-
+		String name = nameInput.getText();
+		if(name.length()>25)
+			name = name.substring(0, 24);
+		String gender = genderChoiceBox.getValue();
+		String program = programChoiceBox.getValue();
+		dbManager.getUserDAO().insertUser(name, gender, program);
 	}
 	@FXML
 	public void catchImage(){
@@ -304,7 +341,9 @@ public class Controller {
 
 		}	
 	}
-
+	public void catchTrainingImage(){
+		testInfo.setText("catch training image");
+	}
 	/**
 	 * Update the {@link ImageView} in the JavaFX main thread
 	 * 
@@ -335,15 +374,32 @@ public class Controller {
 
 				// if the frame is not empty, process it
 				if (!frame.empty()) {
-					detector.detectFace(frame);
 					int uid = 1111111;
+
+					if(catchProfileImageFlag) {
+						ImageProcessing.resize(frame, frame, ImageProcessing.size_92_112);
+						
+						exportProfilePhoto(frame,uid);
+						
+						setCatchImageView(frame);
+						setProfile(frame);
+						//Thread.sleep(1000);
+						catchProfileImageFlag = false;
+					}
+					detector.detectFace(frame);
 
 					// recognizeFace();
 					// 
-					if(catchProfileImageFlag) {
-						exportProfilePhoto(frame,uid);
-						Thread.sleep(1000);
-						catchProfileImageFlag = false;
+					
+					if(false){
+//						Rect roi = i;
+//						//Mat face = new Mat();
+//						
+//						Mat face1 = new Mat(image,roi);
+//						if(face1.empty())
+//							System.out.print("empty face1");
+//						Imgproc.resize(face1, face1, s);
+//						Imgcodecs.imwrite(outpath, face1);
 					}
 				}
 
@@ -421,7 +477,96 @@ private void exportProfilePhoto (Mat photo, int uid){
 	Imgcodecs.imwrite(path, photo);
 }
 
+private void setProfile(Mat mat){
+	
+	ImageProcessing.resize(mat, mat, ImageProcessing.size_150_200);
+	updateImageView(photo,ImageProcessing.mat2Image(mat));
+}
 
+private void setCatchImageView(Mat mat ) {
+	ImageProcessing.resize(mat, mat, ImageProcessing.size_92_112);
+	updateImageView(imageCatched,ImageProcessing.mat2Image(mat));
+}
+
+@SuppressWarnings("unchecked")
+@FXML
+public void displayUsersTable(){
+     dbManager = new DBManager();
+
+	testInfo.setText("Users Table");
+	// a new stage
+			Stage stage = new Stage();
+			stage.setTitle("User List");
+			
+
+
+
+			// create pie chart
+			
+			TableView<User> table = new TableView<User>();
+			table.setEditable(true);
+			table.setTableMenuButtonVisible(true);
+	
+			
+
+	        TableColumn<User,String> nameCol = new TableColumn<User,String>("Name");
+	        TableColumn<User,String> genderCol = new TableColumn<User,String>("Gender");
+	        TableColumn<User,String> programCol = new TableColumn<User,String>("Program");
+			
+			nameCol.setCellFactory(TextFieldTableCell.forTableColumn());
+			genderCol.setCellFactory(TextFieldTableCell.forTableColumn());
+			programCol.setCellFactory(TextFieldTableCell.forTableColumn());
+
+			nameCol.setCellValueFactory(cellData -> cellData.getValue().getName());
+			genderCol.setCellValueFactory(cellData -> cellData.getValue().getGender());
+			programCol.setCellValueFactory(cellData -> cellData.getValue().getProgram());
+			
+
+			nameCol.setOnEditCommit(event -> {
+			    User row = event.getRowValue();
+			    int uid = row.getUID().getValue();
+			    String newName = event.getNewValue();
+			    dbManager.getUserDAO().updateUser("NAME", newName , uid);
+			    
+			});
+			
+
+			genderCol.setOnEditCommit(event -> {
+			    User row = event.getRowValue();
+			    int uid = row.getUID().getValue();
+
+			    String newGender = event.getNewValue();
+			    dbManager.getUserDAO().updateUser("GENDER", newGender , uid);
+
+			});		
+			
+			programCol.setOnEditCommit(event -> {
+			    User row = event.getRowValue();
+			    int uid = row.getUID().getValue();
+			    String newProgram = event.getNewValue();
+			    dbManager.getUserDAO().updateUser("PROGRAM", newProgram , uid);
+
+			});
+			
+			
+	        table.getColumns().addAll(nameCol, genderCol, programCol);
+	        
+	        ArrayList<User> userList = new ArrayList<User>();
+	        userList = dbManager.getUserDAO().getAllUser(); 
+	        ObservableList<User> userData = FXCollections.observableArrayList();
+			for (User u : userList)
+				userData.add(u);
+			
+			table.setItems(userData);
+
+			Scene scene = new Scene(new Group());
+			((Group) scene.getRoot()).getChildren().addAll(table);
+			stage.setScene(scene);
+			stage.show();
+			
+			
+			
+}
 
 
 

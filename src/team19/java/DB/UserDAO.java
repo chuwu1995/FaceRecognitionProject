@@ -49,6 +49,23 @@ public class UserDAO {
 		return uid;
 	}
 	
+	/**
+	 * update a cell
+	 * @param col
+	 * @param value
+	 * @param uid
+	 */
+	public void updateUser(String colNAME, String value, int uid) {
+		try {
+
+			String insert = "UPDATE Users SET " + colNAME + " = '" + value + "' WHERE UID = " + uid;
+			stmt.executeUpdate(insert);
+
+		} catch (SQLException se) {
+			System.out.println(se);
+		}
+	}
+	
 	
 	public void deleteUser(int uid){
 		try {

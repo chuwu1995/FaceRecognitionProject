@@ -21,6 +21,7 @@
                   <Button fx:id="addUserBtn" mnemonicParsing="false" onAction="#addUser" text="Add Visitor" />
                   <Button fx:id="addRecordBtn" mnemonicParsing="false" onAction="#addRecord" text="Add Record" />
                   <Button fx:id="analyticBtn" mnemonicParsing="false" onAction="#analyze" text="Analytic" />
+                  <Button fx:id="displayUsersBtn" mnemonicParsing="false" onAction="#displayUsersTable" text="Display Users" />
               </items>
             </ToolBar>
             <Pane fx:id="containerPane" prefHeight="200.0" prefWidth="200.0">
@@ -80,14 +81,14 @@
                         </GridPane>
                      </children>
                   </Pane>
-                  <Pane fx:id="addUserPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="142.0" prefWidth="400.0">
+                  <Pane fx:id="addUserPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="142.0" prefWidth="467.0">
                      <children>
-                        <GridPane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="320.0">
+                        <GridPane layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="467.0">
                            <children>
                               <Label prefHeight="16.0" prefWidth="87.0" text="Name" GridPane.rowIndex="1" />
                               <Label text="Gender" GridPane.rowIndex="2" />
                               <Label text="Program" GridPane.rowIndex="3" />
-                              <TextField fx:id="nameInput" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                              <TextField fx:id="nameInput" prefHeight="26.0" prefWidth="224.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                               <Button fx:id="submitUserInfoBtn" mnemonicParsing="false" onAction="#submitUserInfo" text="Add Info" GridPane.rowIndex="4">
                                  <GridPane.margin>
                                     <Insets />
@@ -98,13 +99,18 @@
                               <Button fx:id="catchImageBtn" mnemonicParsing="false" onAction="#catchImage" text="Catch Profile" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                               <Button fx:id="submitUserBtn" mnemonicParsing="false" onAction="#submitUser" text="Submit" GridPane.columnIndex="1" GridPane.rowIndex="4">
                                  <GridPane.margin>
-                                    <Insets left="121.0" />
+                                    <Insets left="263.0" />
+                                 </GridPane.margin>
+                              </Button>
+                              <Button fx:id="catchTrainingImageBtn" mnemonicParsing="false" onAction="#catchTrainingImage" text="Catch Training Image" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                                 <GridPane.margin>
+                                    <Insets left="107.0" />
                                  </GridPane.margin>
                               </Button>
                            </children>
                            <columnConstraints>
-                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="301.1850280761719" minWidth="10.0" prefWidth="97.37103271484375" />
-                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="530.6231384277344" minWidth="0.0" prefWidth="222.62896728515625" />
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="301.1850280761719" minWidth="10.0" prefWidth="79.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" maxWidth="530.6231384277344" minWidth="0.0" prefWidth="388.0" />
                            </columnConstraints>
                            <rowConstraints>
                               <RowConstraints />
@@ -116,6 +122,11 @@
                         </GridPane>
                      </children>
                   </Pane>
+                  <ImageView fx:id="imageCatched" fitHeight="150.0" fitWidth="200.0" layoutX="491.0" layoutY="2.0" pickOnBounds="true" preserveRatio="true">
+                     <viewport>
+                        <Rectangle2D height="112.0" width="92.0" />
+                     </viewport>
+                  </ImageView>
                </children>
             </Pane>
          </children>
@@ -127,7 +138,7 @@
                <children>
                   <Pane prefHeight="130.0" prefWidth="162.0">
                      <children>
-                        <ImageView fx:id="photo" fitHeight="161.0" fitWidth="132.0" pickOnBounds="true" preserveRatio="true" />
+                        <ImageView fx:id="photo" fitHeight="200.0" fitWidth="150.0" layoutX="6.0" layoutY="7.0" pickOnBounds="true" preserveRatio="true" />
                      </children>
                   </Pane>
                   <Separator orientation="VERTICAL" prefHeight="200.0" />
