@@ -3,6 +3,7 @@
  */
 package team19.java.application;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
@@ -20,7 +21,10 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -37,9 +41,11 @@ import team19.java.DB.Record;
 import team19.java.DB.User;
 import team19.java.core.Detector;
 import team19.java.util.ImageProcessing;
+import team19.java.util.PhotoExporter;
 
 /**
  * face recognition function should be called in the grabFrame method
+ * 
  * @author Chu Wu
  * 
  */
@@ -77,19 +83,19 @@ public class Controller {
 	@FXML
 	private TableView<Record> recordTable;
 	@FXML
-	private TableColumn<Record,String> dateCol;
+	private TableColumn<Record, String> dateCol;
 	@FXML
-	private TableColumn<Record,String> reasonCol;
+	private TableColumn<Record, String> reasonCol;
 
 	@FXML
 	private GridPane analyticGridPane;
-	
+
 	@FXML
 	private Pane containerPane;
-	
+
 	// add user pane
 	@FXML
-	private Pane addUserPane; 
+	private Pane addUserPane;
 	@FXML
 	private TextField nameInput;
 	@FXML
@@ -98,35 +104,36 @@ public class Controller {
 	private ChoiceBox<String> programChoiceBox;
 	@FXML
 	private Button submitUserBtn;
-	@FXML
-	private Button submitUserInfoBtn;
+
 	@FXML
 	private Button catchImageBtn;
 	@FXML
-	private Button catchTrainingImage;
+	private Button catchTrainingImageBtn;
 	@FXML
 	private ImageView imageCatched;
-	
+	@FXML
+	private Button discardBtn;
+	@FXML
+	private Text tempTrainingPhotoNumberText;
+
 	private boolean catchProfileImageFlag;
 	private boolean catchTrainingImageFlag;
 
-	
-
 	// add record pane
-	@FXML 
+	@FXML
 	private Pane addRecordPane;
 	@FXML
 	private ChoiceBox<String> reasonChoiceBox;
 	@FXML
 	private Button submitRecordBtn;
-	
-	// user table 
-	@FXML 
+
+	// user table
+	@FXML
 	private Button displayUsersBtn;
-	
-	
-	
-	
+
+	// check if only one user is before the camera
+	private int currentUID;
+
 	// a timer for acquiring the video stream
 	private ScheduledExecutorService timer;
 	// the OpenCV object that performs the video capture
@@ -136,9 +143,15 @@ public class Controller {
 	private boolean analyticActive;
 	private boolean addUserActive;
 	private boolean addRecordActive;
-	private boolean userRecognized;
+	
+	private boolean profileCatched;
+	private boolean trainingPhotoCatched;
 
+	private Mat tempProfile;
+	private ArrayList<Mat> tempTrainingPhotos;
 
+	// if discard a catched training image
+	private boolean discardTempTrainingPhotoFlag;
 
 	/**
 	 * Init the controller, at start time
@@ -149,12 +162,12 @@ public class Controller {
 	private void initialize() throws IOException {
 		// load opencv native library
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-		
+
 		// initialize dbManager
 		dbManager = new DBManager();
 		// initialize capture
 		this.capture = new VideoCapture();
-		
+
 		// initialize detector
 		this.detector = new Detector();
 
@@ -162,31 +175,39 @@ public class Controller {
 		analyticGridPane.setVisible(false);
 		addUserPane.setVisible(false);
 		addRecordPane.setVisible(false);
-		
+
 		// initialize choice box
 		initSalaryChoiceBox();
 		initGenderChoiceBox();
 		initProgramChoiceBox();
 
 		// initialize default images
-		defaultProfile = ImageProcessing.readImage("resource/Profile/DefaultPhoto.png");	
+		defaultProfile = ImageProcessing.readImage("resource/Profile/DefaultPhoto.png");
 		setProfile(defaultProfile);
 		setCatchImageView(defaultProfile);
-		
+
 		// initialize record table
 		initRecordTable();
-		
-		
+
+		tempProfile = null;
+		tempTrainingPhotos = new ArrayList<Mat>();
+
 	}
-		
+
 	@FXML
 	public void start() {
 
 		testInfo.setText("start btn clicked");
 
 		if (!this.cameraActive) {
-			if (capture == null)
-				testInfo.setText("capture null");
+		
+			if(addUserActive) {
+				this.catchImageBtn.setDisable(false);
+				this.catchTrainingImageBtn.setDisable(false);
+			}
+				
+			
+			
 
 			// start the video capture
 			this.capture.open(0);
@@ -205,7 +226,7 @@ public class Controller {
 						// convert and show the frame
 						Image imageToShow = ImageProcessing.mat2Image(frame);
 						updateImageView(imageView, imageToShow);
-						
+
 					}
 				};
 
@@ -237,23 +258,21 @@ public class Controller {
 	 */
 	@FXML
 	public void analyze() {
-		
+
 		if (!analyticActive) {
 			addUserBtn.setDisable(true);
 			addRecordBtn.setDisable(true);
 			analyticActive = true;
-			
-			//addUserPane.setVisible(false);
 
-			
+			// addUserPane.setVisible(false);
+
 			analyticGridPane.setVisible(true);
 		} else {
 			analyticActive = false;
 			analyticGridPane.setVisible(false);
-			
+
 			addUserBtn.setDisable(false);
 			addRecordBtn.setDisable(false);
-
 
 		}
 		testInfo.setText("analytic btn clicked");
@@ -262,92 +281,156 @@ public class Controller {
 
 	/**
 	 * add user button
+	 * 
 	 * @throws IOException
 	 */
 	@FXML
 	public void addUser() throws IOException {
 
 		if (!addUserActive) {
+			setDashBoardToDefault();
+
 			analyticBtn.setDisable(true);
 			addRecordBtn.setDisable(true);
-
-			
 			addUserActive = true;
 			addUserPane.setVisible(true);
-		} else {
 			
+			submitUserBtn.setDisable(true);
+			
+			if(!cameraActive){
+				catchImageBtn.setDisable(true);
+				catchTrainingImageBtn.setDisable(true);
+			}
+			
+			
+			
+			
+			
+		} else {
 
 			addUserActive = false;
 			addUserPane.setVisible(false);
-			
+
 			analyticBtn.setDisable(false);
 			addRecordBtn.setDisable(false);
-
 
 		}
 		testInfo.setText("add user btn clicked");
 
 	}
-	
+
+	@FXML
+	public void discardTempTrainingPhoto() {
+		if (cameraActive) {
+			discardTempTrainingPhotoFlag = true;
+			testInfo.setText("discard image");
+
+		}
+
+	}
+
 	/**
 	 * click add record button call this method
 	 */
-	@FXML 
+	@FXML
 	public void addRecord() {
 		testInfo.setText("add record btn");
 		if (!addRecordActive) {
 			analyticBtn.setDisable(true);
 			addUserBtn.setDisable(true);
-	
+
 			addRecordActive = true;
 			addRecordPane.setVisible(true);
 		} else {
-			
+
 			addRecordActive = false;
 			addRecordPane.setVisible(false);
-			
+
 			analyticBtn.setDisable(false);
 			addUserBtn.setDisable(false);
 
 		}
 	}
-	
-	
+
 	@FXML
-	public void submitRecord(){
+	public void submitRecord() {
 		testInfo.setText("submit record");
+		String reason = reasonChoiceBox.getValue();
+		dbManager.getRecordDAO().insertRecord(currentUID, reason);
 
 	}
-	
+
 	@FXML
-	public void submitUser(){
+	public void submitUser() {
+		
 		testInfo.setText("submit user btn");
-
-	}
-	
-	@FXML
-	public void submitUserInfo(){
-		testInfo.setText("submit user info");
+		
+		// user name, gender, program
 		String name = nameInput.getText();
-		if(name.length()>25)
+		if (name.length() > 25)
 			name = name.substring(0, 24);
+		if (name.length()==0) {
+			alert("WARNING","Incomplete Info","Please enter name!","WARNING");
+			return;
+
+		}
+			
 		String gender = genderChoiceBox.getValue();
 		String program = programChoiceBox.getValue();
-		dbManager.getUserDAO().insertUser(name, gender, program);
+		
+		// insert user to USERS table
+		int insertedUID = dbManager.getUserDAO().insertUser(name, gender, program);
+
+		// export user profile
+		PhotoExporter.exportProfilePhoto(tempProfile,insertedUID);
+		setProfile(tempProfile);
+		
+		
+		System.out.println("profile:"+insertedUID);
+		// export training photos
+		PhotoExporter.export(tempTrainingPhotos, insertedUID);
+		
+		// update dash board
+		updateDashBoard(insertedUID);
+
+		this.submitUserBtn.setDisable(true);
+		
+		this.setProfile(this.tempProfile);
+		this.setCatchImageView(defaultProfile);
+		
+		this.tempProfile = null;
+		this.tempTrainingPhotos = new ArrayList<Mat>();
+		
+		this.nameInput.clear();
+		this.genderChoiceBox.setValue("Male");
+		this.programChoiceBox.setValue("MISM");
+		this.setCatchImageView(defaultProfile);
+		this.tempTrainingPhotoNumberText.setText("");
+		this.discardBtn.setDisable(true);
 		
 		
 	}
+
+
+
 	@FXML
-	public void catchImage(){
-		if(cameraActive){
+	public void catchImage() {
+		if (cameraActive) {
 			catchProfileImageFlag = true;
 			testInfo.setText("catch image");
 
-		}	
+		}
 	}
-	public void catchTrainingImage(){
+
+	public void catchTrainingImage() {
+		if (cameraActive) {
+			catchTrainingImageFlag = true;
+			testInfo.setText("catch training image");
+
+		}
 		testInfo.setText("catch training image");
 	}
+
 	/**
 	 * Update the {@link ImageView} in the JavaFX main thread
 	 * 
@@ -378,32 +461,85 @@ public class Controller {
 
 				// if the frame is not empty, process it
 				if (!frame.empty()) {
-					int uid = 1111111;
+					if (addUserActive) {
 
-					if(catchProfileImageFlag) {
-						ImageProcessing.resize(frame, frame, ImageProcessing.size_92_112);
+						if (catchProfileImageFlag) {
+							ImageProcessing.resize(frame, frame, ImageProcessing.size_92_112);
+							tempProfile = frame;
+							// exportProfilePhoto(frame,insertedUID);
+							setProfile(tempProfile);
+							this.setCatchImageView(tempProfile);
+							// Thread.sleep(1000);
+							catchProfileImageFlag = false;
+							profileCatched = true;
+						}
+
+						if (catchTrainingImageFlag) {
+							this.discardBtn.setDisable(false);
+							Mat tempTrainingPhoto = detector.catchTrainingFaces(frame);
+							if (tempTrainingPhoto != null) {
+								tempTrainingPhotos.add(tempTrainingPhoto);
+								setCatchImageView(tempTrainingPhoto);
+								catchTrainingImageFlag = false;
+								tempTrainingPhotoNumberText.setText("Photo Number: " + tempTrainingPhotos.size());
+							}
+							trainingPhotoCatched = true;
+
+						}
 						
-						exportProfilePhoto(frame,uid);
+						if(profileCatched && trainingPhotoCatched)
+							submitUserBtn.setDisable(false);
+
+						if (discardTempTrainingPhotoFlag) {
+
+							int photoIndex = tempTrainingPhotos.size() - 1;
+
+							if (photoIndex >= 0) {
+								tempTrainingPhotos.remove(photoIndex);
+								if(photoIndex>0)
+									setCatchImageView(tempTrainingPhotos.get(photoIndex-1));
+								else {
+									setCatchImageView(defaultProfile);
+
+								}
+
+							}
+
+							tempTrainingPhotoNumberText.setText("Photo Number: " + tempTrainingPhotos.size());
+							discardTempTrainingPhotoFlag = false;
+
+						}
+
+					} else if (addRecordActive) {
 						
-						setCatchImageView(frame);
-						setProfile(frame);
-						//Thread.sleep(1000);
-						catchProfileImageFlag = false;
+						
+						
+
+					} else {
+						ArrayList<User> users = detector.detectFace(frame);
+
+						if (users.size() >= 1) {
+							currentUID = users.get(0).getUID().getValue();
+							updateDashBoard(currentUID);
+
+						} else {
+							currentUID = -1;
+							setDashBoardToDefault();
+						}
 					}
-					detector.detectFace(frame);
 
 					// recognizeFace();
-					// 
-					
-					if(false){
-//						Rect roi = i;
-//						//Mat face = new Mat();
-//						
-//						Mat face1 = new Mat(image,roi);
-//						if(face1.empty())
-//							System.out.print("empty face1");
-//						Imgproc.resize(face1, face1, s);
-//						Imgcodecs.imwrite(outpath, face1);
+					//
+
+					if (false) {
+						// Rect roi = i;
+						// //Mat face = new Mat();
+						//
+						// Mat face1 = new Mat(image,roi);
+						// if(face1.empty())
+						// System.out.print("empty face1");
+						// Imgproc.resize(face1, face1, s);
+						// Imgcodecs.imwrite(outpath, face1);
 					}
 				}
 
@@ -436,7 +572,7 @@ public class Controller {
 			this.capture.release();
 		}
 	}
-	
+
 	/**
 	 * initialize add record choice box.
 	 */
@@ -450,172 +586,207 @@ public class Controller {
 		reasonChoiceBox.setValue("Meet With A Person");
 		reasonChoiceBox.setItems(reasonChoiceBoxItem);
 	}
-private void initGenderChoiceBox(){
-	ObservableList<String> genderChoiceBoxItem = FXCollections.observableArrayList();
-	genderChoiceBoxItem.add("Male");
-	genderChoiceBoxItem.add("Female");
+
+	private void initGenderChoiceBox() {
+		ObservableList<String> genderChoiceBoxItem = FXCollections.observableArrayList();
+		genderChoiceBoxItem.add("Male");
+		genderChoiceBoxItem.add("Female");
+
+		genderChoiceBox.setValue("Male");
+		genderChoiceBox.setItems(genderChoiceBoxItem);
+	}
+
+	private void initProgramChoiceBox() {
+		ObservableList<String> programChoiceBoxItem = FXCollections.observableArrayList();
+		programChoiceBoxItem.add("MISM");
+		programChoiceBoxItem.add("MSIT");
+		programChoiceBoxItem.add("MSPPM");
+
+		programChoiceBox.setValue("MISM");
+		programChoiceBox.setItems(programChoiceBoxItem);
+	}
+
+
 	
 
-	genderChoiceBox.setValue("Male");
-	genderChoiceBox.setItems(genderChoiceBoxItem);
-}
 
-private void initProgramChoiceBox(){
-	ObservableList<String> programChoiceBoxItem = FXCollections.observableArrayList();
-	programChoiceBoxItem.add("MISM");
-	programChoiceBoxItem.add("MSIT");
-	programChoiceBoxItem.add("MSPPM");
+	private void setProfile(Mat mat) {
+
+		ImageProcessing.resize(mat, mat, ImageProcessing.size_150_200);
+		updateImageView(photo, ImageProcessing.mat2Image(mat));
+	}
+
+	private void setCatchImageView(Mat mat) {
+		ImageProcessing.resize(mat, mat, ImageProcessing.size_92_112);
+		updateImageView(imageCatched, ImageProcessing.mat2Image(mat));
+	}
+
+	private void setDashBoardToDefault() {
+		nameDashBoard.setText("");
+		genderDashBoard.setText("");
+		programDashBoard.setText("");
+		setRecordDashBoardToDefault();
+		setProfile(defaultProfile);
+	}
+
+	private void setRecordDashBoardToDefault() {
+		lastDate.setText("");
+		lastReason.setText("");
+		visitCount.setText("");
+		recordTable.setItems(null);
+	}
+
+	@SuppressWarnings("unchecked")
+	@FXML
+	public void displayUsersTable() {
+		dbManager = new DBManager();
+
+		testInfo.setText("Users Table");
+		// a new stage
+		Stage stage = new Stage();
+		stage.setTitle("User List");
+
+		// create pie chart
+
+		TableView<User> table = new TableView<User>();
+		table.setEditable(true);
+		table.setTableMenuButtonVisible(true);
+
+		TableColumn<User, String> nameCol = new TableColumn<User, String>("Name");
+		TableColumn<User, String> genderCol = new TableColumn<User, String>("Gender");
+		TableColumn<User, String> programCol = new TableColumn<User, String>("Program");
+
+		nameCol.setCellFactory(TextFieldTableCell.forTableColumn());
+		genderCol.setCellFactory(TextFieldTableCell.forTableColumn());
+		programCol.setCellFactory(TextFieldTableCell.forTableColumn());
+
+		nameCol.setCellValueFactory(cellData -> cellData.getValue().getName());
+		genderCol.setCellValueFactory(cellData -> cellData.getValue().getGender());
+		programCol.setCellValueFactory(cellData -> cellData.getValue().getProgram());
+
+		nameCol.setOnEditCommit(event -> {
+			User row = event.getRowValue();
+			int uid = row.getUID().getValue();
+			String newName = event.getNewValue();
+			dbManager.getUserDAO().updateUser("NAME", newName, uid);
+
+		});
+
+		genderCol.setOnEditCommit(event -> {
+			User row = event.getRowValue();
+			int uid = row.getUID().getValue();
+
+			String newGender = event.getNewValue();
+			dbManager.getUserDAO().updateUser("GENDER", newGender, uid);
+
+		});
+
+		programCol.setOnEditCommit(event -> {
+			User row = event.getRowValue();
+			int uid = row.getUID().getValue();
+			String newProgram = event.getNewValue();
+			dbManager.getUserDAO().updateUser("PROGRAM", newProgram, uid);
+
+		});
+
+		table.getColumns().addAll(nameCol, genderCol, programCol);
+
+		ArrayList<User> userList = new ArrayList<User>();
+		userList = dbManager.getUserDAO().getAllUser();
+		ObservableList<User> userData = FXCollections.observableArrayList();
+		for (User u : userList)
+			userData.add(u);
+
+		table.setItems(userData);
+
+		Scene scene = new Scene(new Group());
+		((Group) scene.getRoot()).getChildren().addAll(table);
+		stage.setScene(scene);
+		stage.show();
+
+	}
+
+	private void initRecordTable() {
+		// recordTable.setEditable(true);
+		recordTable.setTableMenuButtonVisible(true);
+		// reasonCol.setCellFactory(TextFieldTableCell.forTableColumn());
+		dateCol.setCellValueFactory(cellData -> cellData.getValue().getDate());
+		reasonCol.setCellValueFactory(cellData -> cellData.getValue().getReason());
+	}
+
+	/**
+	 * update the record table
+	 * 
+	 * @param recordList
+	 */
+	private void updateRecordTable(ArrayList<Record> recordList) {
+
+		ObservableList<Record> recordData = FXCollections.observableArrayList();
+		for (Record e : recordList)
+			recordData.add(e);
+
+		recordTable.setItems(recordData);
+	}
+
+	private void updateDashBoard(int uid) {
+		User user = dbManager.getUserDAO().getUserByUID(uid).get(0);
+
+		setDashBoardUserInfo(user.getName().getValue(), user.getGender().getValue(), user.getProgram().getValue());
+		ArrayList<Record> records = dbManager.getRecordDAO().getRecordsByUID(uid);
+
+		String profilePath = "resource/Profile/" + uid + ".jpg";
+		File profileFile = new File(profilePath);
+
+		Mat profile = defaultProfile;
+		if (profileFile.exists()) {
+			profile = ImageProcessing.readImage(profilePath);
+		}
+		
+		setProfile(profile);
+
+		if (records.size() == 0) {
+			setRecordDashBoardToDefault();
+			return;
+		}
+
+		updateRecordTable(records);
+
+		int count = records.size();
+		Record lastRecord = dbManager.getRecordDAO().getLastRecordByUID(user.getUID().getValue()).get(0);
+		updateDashBoardRecordInfo(lastRecord, count);
+
+	}
+
+	private void setDashBoardUserInfo(String name, String gender, String program) {
+		nameDashBoard.setText(name);
+		genderDashBoard.setText(gender);
+		programDashBoard.setText(program);
+	}
+
+	private void updateDashBoardRecordInfo(Record record, int count) {
+		lastDate.setText(record.getDate().getValue());
+		lastReason.setText(record.getReason().getValue());
+		visitCount.setText(String.valueOf(count));
+	}
 	
+	private void alert(String title, String header, String content, String type ){
+		Alert alert = null;
+		switch(type){
+		case "WARNING":
+			alert = new Alert(Alert.AlertType.WARNING);
+		case "ERROR":
+			alert = new Alert(Alert.AlertType.ERROR);
+		default:
+			alert = new Alert(Alert.AlertType.INFORMATION);
+		}
+		
+		ButtonType close = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE );
 
-	programChoiceBox.setValue("MISM");
-	programChoiceBox.setItems(programChoiceBoxItem);
-}
-
-/**
- * out put profile photo, name is uid
- * @param photo
- */
-private void exportProfilePhoto (Mat photo, int uid){
-
-	String path = "resource/photo/"+uid+".jpg";
-	Imgcodecs.imwrite(path, photo);
-}
-
-private void setProfile(Mat mat){
-	
-	ImageProcessing.resize(mat, mat, ImageProcessing.size_150_200);
-	updateImageView(photo,ImageProcessing.mat2Image(mat));
-}
-
-private void setCatchImageView(Mat mat ) {
-	ImageProcessing.resize(mat, mat, ImageProcessing.size_92_112);
-	updateImageView(imageCatched,ImageProcessing.mat2Image(mat));
-}
-
-private void setDashBoardUserInfo(String name, String gender, String program) {
-	nameDashBoard.setText(name);
-	genderDashBoard.setText(gender);
-	programDashBoard.setText(program);
-}
-
-private void setDashBoardToDefault(){
-	nameDashBoard.setText("");
-	genderDashBoard.setText("");
-	programDashBoard.setText("");
-	lastDate.setText("");
-	lastReason.setText("");
-	visitCount.setText("");
-	recordTable.setItems(null);
-}
-
-@SuppressWarnings("unchecked")
-@FXML
-public void displayUsersTable(){
-     dbManager = new DBManager();
-
-	testInfo.setText("Users Table");
-	// a new stage
-			Stage stage = new Stage();
-			stage.setTitle("User List");
-			
-
-
-
-			// create pie chart
-			
-			TableView<User> table = new TableView<User>();
-			table.setEditable(true);
-			table.setTableMenuButtonVisible(true);
-	
-			
-
-	        TableColumn<User,String> nameCol = new TableColumn<User,String>("Name");
-	        TableColumn<User,String> genderCol = new TableColumn<User,String>("Gender");
-	        TableColumn<User,String> programCol = new TableColumn<User,String>("Program");
-			
-			nameCol.setCellFactory(TextFieldTableCell.forTableColumn());
-			genderCol.setCellFactory(TextFieldTableCell.forTableColumn());
-			programCol.setCellFactory(TextFieldTableCell.forTableColumn());
-
-			nameCol.setCellValueFactory(cellData -> cellData.getValue().getName());
-			genderCol.setCellValueFactory(cellData -> cellData.getValue().getGender());
-			programCol.setCellValueFactory(cellData -> cellData.getValue().getProgram());
-			
-
-			nameCol.setOnEditCommit(event -> {
-			    User row = event.getRowValue();
-			    int uid = row.getUID().getValue();
-			    String newName = event.getNewValue();
-			    dbManager.getUserDAO().updateUser("NAME", newName , uid);
-			    
-			});
-			
-
-			genderCol.setOnEditCommit(event -> {
-			    User row = event.getRowValue();
-			    int uid = row.getUID().getValue();
-
-			    String newGender = event.getNewValue();
-			    dbManager.getUserDAO().updateUser("GENDER", newGender , uid);
-
-			});		
-			
-			programCol.setOnEditCommit(event -> {
-			    User row = event.getRowValue();
-			    int uid = row.getUID().getValue();
-			    String newProgram = event.getNewValue();
-			    dbManager.getUserDAO().updateUser("PROGRAM", newProgram , uid);
-
-			});
-			
-			
-	        table.getColumns().addAll(nameCol, genderCol, programCol);
-	        
-	        ArrayList<User> userList = new ArrayList<User>();
-	        userList = dbManager.getUserDAO().getAllUser(); 
-	        ObservableList<User> userData = FXCollections.observableArrayList();
-			for (User u : userList)
-				userData.add(u);
-			
-			table.setItems(userData);
-
-			Scene scene = new Scene(new Group());
-			((Group) scene.getRoot()).getChildren().addAll(table);
-			stage.setScene(scene);
-			stage.show();
-			
-			
-			
-}
-
-
-private void initRecordTable() {
-//	recordTable.setEditable(true);
-	recordTable.setTableMenuButtonVisible(true);
-//	reasonCol.setCellFactory(TextFieldTableCell.forTableColumn());
-	dateCol.setCellValueFactory(cellData -> cellData.getValue().getDate());
-	reasonCol.setCellValueFactory(cellData -> cellData.getValue().getReason());
-}
-/**
- * update the record table
- * 
- * @param recordList
- */
-private void updateRecordTable(ArrayList<Record> recordList) {
-	
-	ObservableList<Record> recordData = FXCollections.observableArrayList();
-	for (Record e : recordList)
-		recordData.add(e);
-	
-	recordTable.setItems(recordData);
-}
-
-
-
-
-
-
-
-
+		alert.getButtonTypes().setAll(close);
+		alert.setTitle(title);
+		alert.setHeaderText(header);
+		alert.setContentText(content);
+		alert.showAndWait();
+	}
 
 }

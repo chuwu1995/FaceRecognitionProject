@@ -34,7 +34,7 @@ public class RecordDAO {
 	}
 	
 	public ArrayList<Record> getLastRecordByUID(int uid) {
-		String query = "SELECT * FROM Records WHERE Date= (SELECT MAX(Date) FROM Record WHERE UID = " + uid + ")";
+		String query = "SELECT * FROM Records WHERE Date= (SELECT MAX(Date) FROM Records WHERE UID = " + uid + ")";
 		return getRecordData(query);
 	}
 

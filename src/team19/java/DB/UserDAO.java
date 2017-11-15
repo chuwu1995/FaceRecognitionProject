@@ -88,6 +88,14 @@ public class UserDAO {
 		return getUserData(query);
 
 	}
+	
+	// get one or more User objects in an array list by a given condition
+	public ArrayList<User> getUserByUID(int uid) {
+
+		String query = "SELECT * FROM Users WHERE UID = " + uid;
+		return getUserData(query);
+
+	}
 
 	// get all User objects from the User table
 	public ArrayList<User> getAllUser() {

@@ -29,6 +29,7 @@ public class DBManager {
 	private UserDAO udao = null;
 	private RecordDAO rdao = null;
 	private tableManager tm = null;
+	
 	// establish connection
 	public DBManager() {
 		if (!dbExists()) {

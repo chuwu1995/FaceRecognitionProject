@@ -84,4 +84,5 @@ public class ImageProcessing {
 		Mat image= Imgcodecs.imread(path,Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 		return image;
 	}
+	
 }
