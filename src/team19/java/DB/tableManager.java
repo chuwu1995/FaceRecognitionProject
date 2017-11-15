@@ -37,6 +37,11 @@ public class tableManager {
 			for(Record record:rl)
 				System.out.println("  "+record.toString());
 		}
+		System.out.println();
+		ArrayList<Record> rl = dbManager.getRecordDAO().getAllRecords();
+		for(Record r:rl)
+			System.out.println(r.toString());
+
 	}
 	
 	public void dropAndRecreateTables() throws SQLException{

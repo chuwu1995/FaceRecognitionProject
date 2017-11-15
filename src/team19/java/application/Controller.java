@@ -389,7 +389,7 @@ public class Controller {
 		System.out.println("profile:"+insertedUID);
 		// export training photos
 		PhotoExporter.export(tempTrainingPhotos, insertedUID);
-		
+		this.detector = new Detector();
 		// update dash board
 		updateDashBoard(insertedUID);
 
@@ -517,15 +517,18 @@ public class Controller {
 
 					} else {
 						ArrayList<User> users = detector.detectFace(frame);
+						if(users!=null) {
+							if (users.size() >= 1) {
+								currentUID = users.get(0).getUID().getValue();
+								updateDashBoard(currentUID);
 
-						if (users.size() >= 1) {
-							currentUID = users.get(0).getUID().getValue();
-							updateDashBoard(currentUID);
-
-						} else {
-							currentUID = -1;
-							setDashBoardToDefault();
+							} else {
+								currentUID = -1;
+								setDashBoardToDefault();
+							}
 						}
+							
+						
 					}
 
 					// recognizeFace();

@@ -30,7 +30,6 @@ public class PrepareTraining {
 	private ArrayList<Mat> imageList = new ArrayList<Mat>();
 	private ArrayList<Integer> labelList = new ArrayList<Integer>();
 
-	private static PrepareTraining instance;
 
 	public PrepareTraining() {
 		getCurrentLists();
@@ -94,15 +93,9 @@ public class PrepareTraining {
 				}
 
 			}
-
 		}
 	}
 
-
-
-
-
-	
 
 	private void getCurrentLists() {
 		File file = generate();
@@ -121,12 +114,13 @@ public class PrepareTraining {
 			while ((line = br.readLine()) != null) {
 				String item[] = line.split(";");
 				label = Integer.parseInt(item[1]);
-				image = Imgcodecs.imread(item[0]);
+				image = Imgcodecs.imread(item[0],Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 				
 //				Imgproc.equalizeHist(image, image);
 
 				this.imageList.add(image);
 				this.labelList.add(label);
+				
 			}
 		} catch (NumberFormatException | IOException e) {
 			// TODO Auto-generated catch block

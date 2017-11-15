@@ -7,10 +7,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfInt;
 import org.opencv.face.FaceRecognizer;
 import org.opencv.face.FisherFaceRecognizer;
+import org.opencv.imgcodecs.Imgcodecs;
 
 import team19.java.util.PrepareTraining;
 
@@ -34,6 +36,8 @@ public class Model {
 //			load();
 //		else
 		faceRecognizer=train(prepareTraining.getImageList(),prepareTraining.getLabelList());
+
+		
 	}
 	/**
 	 * @param args
@@ -55,13 +59,12 @@ public class Model {
 
 	private FaceRecognizer train(ArrayList<Mat> imagesList,ArrayList<Integer> labelsList) {
 		
-
-
-		FaceRecognizer faceRecognizer= FisherFaceRecognizer.create(42, 1800);
+		
+		
+		FaceRecognizer faceRecognizer= FisherFaceRecognizer.create();
 
 		MatOfInt labelMat = new MatOfInt();
 		labelMat.fromList(labelsList);
-		
 		
 		
 		faceRecognizer.train(imagesList, labelMat);;
@@ -77,5 +80,7 @@ public class Model {
 		System.out.println(OUTPUT);
 		faceRecognizer.read(OUTPUT);
 	}
+	
+
 
 }

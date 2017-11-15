@@ -10,6 +10,8 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.face.FaceRecognizer;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import team19.java.DB.DBManager;
@@ -24,10 +26,11 @@ public class Recognizer {
 	private DBManager dbManager = new DBManager();
 	private ArrayList<User> users = new ArrayList<User>();
 	private Model model = new Model();
-	
+	private static final int THRESHOLD = 800;
 
 
 	public ArrayList<User> recognizeFace(Mat frame, Rect[] facesArray) {
+		
 		users.clear();
 
 		for (int i = 0; i < facesArray.length; i++) {
@@ -46,13 +49,13 @@ public class Recognizer {
 			
 			System.out.println(label + "    " + confidence);
 		
-			if (label == -1) {
-				Imgproc.putText(frame, "????????", new Point(facesArray[i].x, facesArray[i].y),
+			if (label == -1 || confidence<THRESHOLD) {
+				Imgproc.putText(frame, "Strange!!!", new Point(facesArray[i].x, facesArray[i].y),
 						Core.FONT_HERSHEY_TRIPLEX, 2.0, new Scalar(255, 0, 0));
 				continue;
 			}
 
-			if (label > 1) {
+			if (label > 1 && confidence>THRESHOLD) {
 				User user = null;
 				try {
 					user = dbManager.getUserDAO().getUserByUID(label).get(0);
@@ -64,18 +67,16 @@ public class Recognizer {
 
 				if (user != null)
 					Imgproc.putText(frame, user.getName().getValue(), new Point(facesArray[i].x, facesArray[i].y),
-							Core.FONT_HERSHEY_TRIPLEX, 2.0, new Scalar(255, 0, 0));
+							Core.FONT_HERSHEY_TRIPLEX, 2.0, new Scalar(0, 255, 0));
 
 			}
 
-			if (false) {
-				Imgproc.putText(frame, "unknow", new Point(facesArray[i].x, facesArray[i].y), Core.FONT_HERSHEY_TRIPLEX,
-						2.0, new Scalar(0, 255, 0));
-			}
 
 		}
 		return users;
 
 	}
+	
+	
 	
 }

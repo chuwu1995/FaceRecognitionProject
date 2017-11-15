@@ -31,12 +31,17 @@ public class Detector {
 	// face cascade classifier
 	private CascadeClassifier faceCascade;
 	private Recognizer recognizer;
+	private boolean onlyDetect;
 
 	public Detector() {
 		this.faceCascade = new CascadeClassifier();
 		this.faceCascade.load("lib/FaceDetectionClassifier/lbpcascade_frontalface.xml");
 		this.absoluteFaceSize = 0;
-		this.recognizer = new Recognizer();
+		try{
+			this.recognizer = new Recognizer();
+		} catch(Exception e){
+			onlyDetect = true;
+		}
 	}
 
 	/**
@@ -67,13 +72,20 @@ public class Detector {
 		this.faceCascade.detectMultiScale(grayFrame, faces, 1.1, 2, 0 | Objdetect.CASCADE_SCALE_IMAGE,
 				new Size(this.absoluteFaceSize, this.absoluteFaceSize), new Size());
 
+		if(onlyDetect)
+			return null;
+		
+		
 		// each rectangle in faces is a face: draw them!
 		Rect[] facesArray = faces.toArray();
+		
+		
 
 		return recognizer.recognizeFace(frame, facesArray);
 
 	}
-
+	
+	
 	public Mat catchTrainingFaces(Mat image) {
 
 		MatOfRect faces = new MatOfRect();

@@ -21,8 +21,9 @@ public class Test {
 //		dbManager.getUserDAO().deleteUser(1000800);
 //		dbManager.getRecordDAO().deleteRecord(1000200);
 //		for(int i=1000901;i<=1001901;i++)
-//			dbManager.getUserDAO().deleteUser(i);
-		
+//			dbManager.getUserDAO().deleteUser(1002000);
+//			dbManager.getUserDAO().deleteUser(1000100);
+
 		dbManager.getTableManager().displayUsers();
 		dbManager.close();
 		
