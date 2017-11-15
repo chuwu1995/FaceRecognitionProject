@@ -10,8 +10,10 @@ import java.util.ArrayList;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfInt;
+import org.opencv.face.EigenFaceRecognizer;
 import org.opencv.face.FaceRecognizer;
 import org.opencv.face.FisherFaceRecognizer;
+import org.opencv.face.LBPHFaceRecognizer;
 import org.opencv.imgcodecs.Imgcodecs;
 
 import team19.java.util.PrepareTraining;
@@ -61,7 +63,9 @@ public class Model {
 		
 		
 		
-		FaceRecognizer faceRecognizer= FisherFaceRecognizer.create();
+//		FaceRecognizer faceRecognizer= FisherFaceRecognizer.create(0,1500);
+//		FaceRecognizer faceRecognizer= EigenFaceRecognizer.create(0,5800);
+		FaceRecognizer faceRecognizer= LBPHFaceRecognizer.create(1,8,8,8,120);
 
 		MatOfInt labelMat = new MatOfInt();
 		labelMat.fromList(labelsList);
