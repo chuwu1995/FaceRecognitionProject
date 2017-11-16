@@ -25,7 +25,7 @@ import team19.java.util.ImageProcessing;
 public class Recognizer {
 	private DBManager dbManager = new DBManager();
 	private ArrayList<User> users = new ArrayList<User>();
-	private Model model = new Model();
+	private Model model = Model.getInstance();
 	private static final int THRESHOLD = 800;
 	private int counter;
 	private int previousLabel=0;

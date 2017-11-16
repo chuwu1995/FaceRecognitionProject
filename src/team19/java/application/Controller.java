@@ -40,6 +40,7 @@ import team19.java.DB.DBManager;
 import team19.java.DB.Record;
 import team19.java.DB.User;
 import team19.java.core.Detector;
+import team19.java.core.Model;
 import team19.java.util.ImageProcessing;
 import team19.java.util.PhotoExporter;
 
@@ -389,7 +390,15 @@ public class Controller {
 		System.out.println("profile:"+insertedUID);
 		// export training photos
 		PhotoExporter.export(tempTrainingPhotos, insertedUID);
-		this.detector = new Detector();
+		
+		
+		// update facerecognizer
+		
+//		this.detector = new Detector();
+		
+		Model.getInstance().update(this.tempTrainingPhotos, insertedUID);
+		
+		
 		// update dash board
 		updateDashBoard(insertedUID);
 
@@ -789,6 +798,7 @@ public class Controller {
 		alert.setTitle(title);
 		alert.setHeaderText(header);
 		alert.setContentText(content);
+		
 		alert.showAndWait();
 	}
 

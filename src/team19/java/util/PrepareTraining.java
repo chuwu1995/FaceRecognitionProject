@@ -115,9 +115,7 @@ public class PrepareTraining {
 				String item[] = line.split(";");
 				label = Integer.parseInt(item[1]);
 				image = Imgcodecs.imread(item[0],Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-				
 //				Imgproc.equalizeHist(image, image);
-
 				this.imageList.add(image);
 				this.labelList.add(label);
 				
