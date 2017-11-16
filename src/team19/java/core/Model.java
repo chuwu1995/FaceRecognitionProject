@@ -140,7 +140,7 @@ public class Model {
 		MatOfInt labelMat = new MatOfInt();
 		labelMat.fromList(labelsList);
 		faceRecognizer.update(imagesList, labelMat);
-		
+		System.out.println("Face model updated");
 	}
 	
 
