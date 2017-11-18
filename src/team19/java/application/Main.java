@@ -29,11 +29,6 @@ public class Main extends Application {
 		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 	         @Override
 	         public void handle(WindowEvent event) {
-//	        	 Alert alert = new Alert(Alert.AlertType.INFORMATION);
-//	    		alert.setTitle("Save Model");
-//	    		alert.setHeaderText("Save Model");
-//	    		alert.setContentText("Saving face model...");
-//	    		alert.show();
 	        	 Model.getInstance().save();
 	        	 System.exit(0);
 	         }
