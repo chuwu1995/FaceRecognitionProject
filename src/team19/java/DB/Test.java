@@ -18,9 +18,9 @@ public class Test {
 //		int uid = dbManager.getUserDAO().insertUser("MaMa Ming", "Female", "MISM");
 //		dbManager.getRecordDAO().insertRecord(1000100, "Other");
 		
-//		dbManager.getUserDAO().deleteUser(1000800);
-//		dbManager.getRecordDAO().deleteRecord(1000200);
-//		for(int i=1000901;i<=1001901;i++)
+//		dbManager.getUserDAO().deleteUser(1002200);
+//		dbManager.getRecordDAO().deleteRecord(1001502);
+////		for(int i=1000901;i<=1001901;i++)
 //			dbManager.getUserDAO().deleteUser(1002000);
 //			dbManager.getUserDAO().deleteUser(1000100);
 

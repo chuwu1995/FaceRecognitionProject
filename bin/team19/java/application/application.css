@@ -1,1 +1,107 @@
-/* JavaFX CSS - Leave this comment until you have at least create one rule which uses -fx-Property */
+.label {
+    -fx-font-size: 10pt;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-text-fill: black;
+    -fx-opacity: 0.6;
+}
+
+.label-bright {
+    -fx-font-size: 11pt;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-text-fill: white;
+    -fx-opacity: 1;
+}
+
+.label-header {
+    -fx-font-size: 32pt;
+    -fx-font-family: "Segoe UI Light";
+    -fx-text-fill: white;
+    -fx-opacity: 1;
+}
+
+.table-view {
+    -fx-base: #960000;
+    -fx-control-inner-background: lightGrey;
+    -fx-background-color: white;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #960000;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-size: 20;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: 
+        transparent
+        transparent
+        derive(-fx-base, 80%) 
+        transparent;
+    -fx-border-insets: 0 10 1 0;
+}
+
+.table-view .column-header .label {
+    -fx-font-size: 14pt;
+    -fx-font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    -fx-text-fill: white;
+    -fx-alignment: center-left;
+    -fx-opacity: 1;
+}
+
+.table-view:focused .table-row-cell:filled:focused:selected {
+    -fx-background-color: -fx-focus-color;
+}
+
+.split-pane:horizontal > * > .split-pane-divider {
+    -fx-border-color: DodgerBlue;
+    -fx-background-color: rgb(38,21,255);
+}
+
+.split-pane {
+    -fx-padding: 1 0 0 0;
+}
+
+.text-field {
+    -fx-font-size: 12pt;
+    -fx-font-family: "Segoe UI Semibold";
+}
+
+.button {
+    -fx-background-radius: 10px;
+    -fx-background-color: #960000;
+    -fx-font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    -fx-font-size: 11pt;
+    -fx-text-fill: white;
+    -fx-opacity: 0.7;
+}
+
+.button:clicked {
+	-fx-background-radius: 10px;
+	-fx-background-color: white; 
+    -fx-text-fill: #960000; 
+}
+
+.button:focused {
+	-fx-background-radius: 10px;
+    -fx-background-color: white; 
+    -fx-text-fill: #960000;
+    -fx-border-color: white;
+    -fx-border-width: 1;
+    -fx-border-style: solid, segments(2, 2);
+}
+
+
+.button:hover{
+	-fx-background-radius: 10px;
+	-fx-background-color: white; 
+    -fx-text-fill: #960000;
+}
+
+.button:disabled{
+	-fx-background-radius: 10px;
+    -fx-opacity: 0.5;
+    -fx-background-color: lightGray;
+    -fx-text-fill: white;
+}
+
+

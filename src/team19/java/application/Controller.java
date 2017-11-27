@@ -5,7 +5,9 @@ package team19.java.application;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -21,11 +23,17 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -54,9 +62,21 @@ public class Controller {
 	private DBManager dbManager;
 	private Detector detector;
 	private Mat defaultProfile;
-	@FXML
-	private Text testInfo;
 
+	// Mia
+		@FXML
+		private Button pieChartBtn;
+
+		@FXML
+		private DatePicker startDate;
+
+		@FXML
+		private DatePicker endDate;
+		
+		@FXML
+		private Button barChartBtn;
+
+		
 	@FXML
 	private ImageView imageView;
 	@FXML
@@ -106,6 +126,7 @@ public class Controller {
 	@FXML
 	private Button submitUserBtn;
 
+	
 	@FXML
 	private Button catchImageBtn;
 	@FXML
@@ -131,6 +152,9 @@ public class Controller {
 	// user table
 	@FXML
 	private Button displayUsersBtn;
+	
+	// logo
+//	private ImageView logoImageView;
 
 	// check if only one user is before the camera
 	private int currentUID;
@@ -153,6 +177,9 @@ public class Controller {
 
 	// if discard a catched training image
 	private boolean discardTempTrainingPhotoFlag;
+	
+	ObservableList<String> reasonChoiceBoxItem = FXCollections.observableArrayList();
+
 
 	/**
 	 * Init the controller, at start time
@@ -163,6 +190,10 @@ public class Controller {
 	private void initialize() throws IOException {
 		// load opencv native library
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+//		System.out.println("dd: "+getClass().getResource("/resource/img/logo.jpg").toExternalForm());
+//		Image logo = new Image("file:resource/img/logo.jpg");
+//		logoImageView = new ImageView();
+//		logoImageView.setImage(logo);
 
 		// initialize dbManager
 		dbManager = new DBManager();
@@ -198,7 +229,6 @@ public class Controller {
 	@FXML
 	public void start() {
 
-		testInfo.setText("start btn clicked");
 
 		if (!this.cameraActive) {
 		
@@ -240,7 +270,6 @@ public class Controller {
 				System.err.println("Failed to open the camera connection...");
 			}
 		} else {
-			testInfo.setText("stop btn clicked");
 
 			// the camera is not active at this point
 			this.cameraActive = false;
@@ -276,7 +305,6 @@ public class Controller {
 			addRecordBtn.setDisable(false);
 
 		}
-		testInfo.setText("analytic btn clicked");
 
 	}
 
@@ -316,7 +344,6 @@ public class Controller {
 			addRecordBtn.setDisable(false);
 
 		}
-		testInfo.setText("add user btn clicked");
 
 	}
 
@@ -324,7 +351,6 @@ public class Controller {
 	public void discardTempTrainingPhoto() {
 		if (cameraActive) {
 			discardTempTrainingPhotoFlag = true;
-			testInfo.setText("discard image");
 
 		}
 
@@ -335,7 +361,6 @@ public class Controller {
 	 */
 	@FXML
 	public void addRecord() {
-		testInfo.setText("add record btn");
 		if (!addRecordActive) {
 			analyticBtn.setDisable(true);
 			addUserBtn.setDisable(true);
@@ -355,17 +380,15 @@ public class Controller {
 
 	@FXML
 	public void submitRecord() {
-		testInfo.setText("submit record");
 		String reason = reasonChoiceBox.getValue();
 		dbManager.getRecordDAO().insertRecord(currentUID, reason);
+		updateDashBoard(currentUID);
 
 	}
 
 	@FXML
 	public void submitUser() {
-		
-		testInfo.setText("submit user btn");
-		
+				
 		// user name, gender, program
 		String name = nameInput.getText();
 		if (name.length() > 25)
@@ -426,7 +449,6 @@ public class Controller {
 	public void catchImage() {
 		if (cameraActive) {
 			catchProfileImageFlag = true;
-			testInfo.setText("catch image");
 
 		}
 	}
@@ -434,10 +456,8 @@ public class Controller {
 	public void catchTrainingImage() {
 		if (cameraActive) {
 			catchTrainingImageFlag = true;
-			testInfo.setText("catch training image");
 
 		}
-		testInfo.setText("catch training image");
 	}
 
 	/**
@@ -540,24 +560,12 @@ public class Controller {
 						
 					}
 
-					// recognizeFace();
-					//
-
-					if (false) {
-						// Rect roi = i;
-						// //Mat face = new Mat();
-						//
-						// Mat face1 = new Mat(image,roi);
-						// if(face1.empty())
-						// System.out.print("empty face1");
-						// Imgproc.resize(face1, face1, s);
-						// Imgcodecs.imwrite(outpath, face1);
-					}
+				
 				}
 
 			} catch (Exception e) {
-				// log the (full) error
-				System.err.println("Exception during the image elaboration: " + e);
+//				// log the (full) error
+//				System.err.println("Exception during the image elaboration: " + e);
 			}
 		}
 
@@ -589,7 +597,7 @@ public class Controller {
 	 * initialize add record choice box.
 	 */
 	private void initSalaryChoiceBox() {
-		ObservableList<String> reasonChoiceBoxItem = FXCollections.observableArrayList();
+		
 		reasonChoiceBoxItem.add("Meet With A Person");
 		reasonChoiceBoxItem.add("Retreive Something");
 		reasonChoiceBoxItem.add("Lost Registration");
@@ -653,7 +661,6 @@ public class Controller {
 	public void displayUsersTable() {
 		dbManager = new DBManager();
 
-		testInfo.setText("Users Table");
 		// a new stage
 		Stage stage = new Stage();
 		stage.setTitle("User List");
@@ -719,9 +726,7 @@ public class Controller {
 	}
 
 	private void initRecordTable() {
-		// recordTable.setEditable(true);
-		recordTable.setTableMenuButtonVisible(true);
-		// reasonCol.setCellFactory(TextFieldTableCell.forTableColumn());
+
 		dateCol.setCellValueFactory(cellData -> cellData.getValue().getDate());
 		reasonCol.setCellValueFactory(cellData -> cellData.getValue().getReason());
 	}
@@ -800,6 +805,150 @@ public class Controller {
 		alert.setContentText(content);
 		
 		alert.showAndWait();
+	}
+	
+	String start;
+	String end;
+	/**
+	 * Mia get Date Range
+	 */
+	public ArrayList<Record> getDateRange() throws IOException {
+		// start date
+		if(startDate.getValue() != null) {
+		start = startDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		}else {
+			start = "2010-01-01";
+		}
+		// end date
+		if(endDate.getValue() != null) {
+		end = endDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		}else {
+			end = "2100-01-01";
+		}
+
+		ArrayList<Record> recordByDateRange = dbManager.getRecordDAO().getRecordByDateRange(start, end);
+
+		return recordByDateRange;
+	}
+	
+	/**
+	 * Mia pieChart button
+	 */
+	public void showPieChart() throws IOException {
+
+		// a new stage
+		Stage stage = new Stage();
+		stage.setTitle("Visiting Report by Genders");
+		stage.setWidth(500);
+		stage.setHeight(500);
+		
+		ArrayList<Record> recordByDateRange = getDateRange();
+		int countFemale = 0;
+		int countMale = recordByDateRange.size() - countFemale;
+	
+		for (Record r : recordByDateRange) {
+			System.out.println(r.toString());
+			User u = dbManager.getUserDAO().getUserByUID(r.getUid().getValue()).get(0);			
+			if (u.getGender().getValue().equals("Female")) {
+				countFemale++;
+			}			
+
+			System.out.println(u.toString());
+		}
+
+		// create pie chart
+		ObservableList<PieChart.Data> pieChartData = FXCollections
+				.observableArrayList(new PieChart.Data("Female", countFemale), new PieChart.Data("Male", countMale));
+
+		final PieChart chart = new PieChart(pieChartData);
+		chart.setTitle("From " + start + " to " + end);
+
+		Scene scene = new Scene(new Group());
+		((Group) scene.getRoot()).getChildren().add(chart);
+		stage.setScene(scene);
+		stage.show();
+
+	}
+	
+	/**
+	 * Mia barChart button
+	 */
+	public void showBarChart() throws IOException {
+		
+		ArrayList<Record> recordByDateRange = getDateRange();
+		
+		int countReason1 = 0, countReason2 = 0, countReason3 = 0, countReason4 = 0;
+		
+		String reason1 = reasonChoiceBoxItem.get(0);
+		String reason2 = reasonChoiceBoxItem.get(1);
+		String reason3 = reasonChoiceBoxItem.get(2);
+		String reason4 = reasonChoiceBoxItem.get(3);	
+		
+		for (Record r : recordByDateRange) {
+			System.out.println(r.toString());
+				if(r.getReason().getValue().equals(reason1)){
+					countReason1++;
+				}
+				if(r.getReason().getValue().equals(reason2)){
+					countReason2++;
+				}
+				if(r.getReason().getValue().equals(reason3)){
+					countReason3++;
+				}
+				if(r.getReason().getValue().equals(reason4)){
+					countReason4++;
+				}
+		}
+
+		Stage stage = new Stage();
+	      //Defining the axes   
+	      CategoryAxis xAxis = new CategoryAxis();  
+	      xAxis.setCategories(FXCollections.<String>
+	      observableArrayList(Arrays.asList("")));
+	      xAxis.setLabel("Reasons");
+	       
+	      NumberAxis yAxis = new NumberAxis();
+	      yAxis.setLabel("Numbers");
+	     
+	      //Creating the Bar chart
+	      BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis); 
+	      barChart.setTitle("From " + start + " to " + end);
+	        
+	      //Prepare XYChart.Series objects by setting data       
+	      XYChart.Series<String, Number> series1 = new XYChart.Series<>();
+	      series1.setName(reasonChoiceBoxItem.get(0));
+	      series1.getData().add(new XYChart.Data<>("", countReason1));
+	        
+	      XYChart.Series<String, Number> series2 = new XYChart.Series<>();
+	      series2.setName(reasonChoiceBoxItem.get(1));
+	      series2.getData().add(new XYChart.Data<>("", countReason2));
+
+	      XYChart.Series<String, Number> series3 = new XYChart.Series<>();
+	      series3.setName(reasonChoiceBoxItem.get(2));
+	      series3.getData().add(new XYChart.Data<>("", countReason3));
+	      
+	      XYChart.Series<String, Number> series4 = new XYChart.Series<>();
+	      series4.setName(reasonChoiceBoxItem.get(3));
+	      series4.getData().add(new XYChart.Data<>("", countReason4));
+	              
+	      //Setting the data to bar chart       
+	      barChart.getData().addAll(series1, series2, series3,series4);
+	        
+	      //Creating a Group object 
+	      Group root = new Group(barChart);
+	        
+	      //Creating a scene object
+	      Scene scene = new Scene(root, 600, 400);
+
+		//Setting title to the Stage
+	      stage.setTitle("Visiting Report by Reasons");
+	        
+	      //Adding scene to the stage
+	      stage.setScene(scene);
+	        
+	      //Displaying the contents of the stage
+	      stage.show();  
+
 	}
 
 }

@@ -33,7 +33,7 @@ public class Model {
 	private Model() {
 
 		File file = new File(OUTPUT);
-		faceRecognizer = LBPHFaceRecognizer.create(1, 8, 8, 8, 100);
+		faceRecognizer = LBPHFaceRecognizer.create(1, 8, 8, 8, 93);
 		
 		if (file.exists())
 			load();

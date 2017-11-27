@@ -18,9 +18,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import org.opencv.core.Mat;
-import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
 
 public class PrepareTraining {
 

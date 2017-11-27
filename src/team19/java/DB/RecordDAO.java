@@ -37,6 +37,13 @@ public class RecordDAO {
 		String query = "SELECT * FROM Records WHERE Date= (SELECT MAX(Date) FROM Records WHERE UID = " + uid + ")";
 		return getRecordData(query);
 	}
+	
+	//get an Record within a date range. Mia
+	public ArrayList<Record> getRecordByDateRange(String startDate, String endDate) {
+		String query = "SELECT * FROM Records WHERE Date >= '" + startDate + "' AND Date <= '" + endDate + "'";
+		//String query = "SELECT * FROM Records INNER JOIN Users ON Users.UID=Records.UID;";
+		return getRecordData(query);
+	}
 
 	// insert an Record to record table
 	public void insertRecord(int uid, String reason) {
