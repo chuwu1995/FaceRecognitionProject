@@ -9,5 +9,6 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/DerbyForTeam"/>
 	<classpathentry kind="lib" path="resource/JavaFX/org.eclipse.fx.ide.css_2.4.0.201605112122.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/FreeTTS"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

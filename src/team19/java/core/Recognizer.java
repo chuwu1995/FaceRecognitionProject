@@ -26,11 +26,13 @@ public class Recognizer {
 	private DBManager dbManager = new DBManager();
 	private ArrayList<User> users = new ArrayList<User>();
 	private Model model = Model.getInstance();
-	private static final int THRESHOLD = 800;
-	private int counter;
-	private int previousLabel=0;
-	private static final int STEP =0;
 
+	/**
+	 * this function is used to recognize the face and return the user
+	 * @param frame the grabbed frame that contains the faces
+	 * @param facesArray array that contains the faces
+	 * @return the id of the recognized user
+	 */
 	public ArrayList<User> recognizeFace(Mat frame, Rect[] facesArray) {
 		
 		users.clear();
@@ -48,39 +50,7 @@ public class Recognizer {
 			
 			int label = labelList[0];
 			double confidence = confidenceList[0];
-			
-			
-//			sum += confidence;
-//			counter++;
-//			if(counter<STEP) {
-//				continue;
-//			} else{
-//				System.out.print(sum/STEP);
-//			}
-		///////////////////////////////	
-//			if(previousLabel == 0){
-//				previousLabel = label;
-//				System.out.println("conitnue1");
-//				continue;
-//			}
-//
-//			
-//			if(previousLabel==label){
-//				counter++;
-//				if(counter<STEP){
-//					System.out.println("conitnue2");
-//					continue;
-//
-//				}
-//				else{
-//					previousLabel = 0;
-//					counter = 0;
-//
-//				}
-//			} else{
-//				System.out.println("conitnue3");
-//				continue;
-//			}
+		
 			
 			
 			System.out.println(label + "    " + confidence);

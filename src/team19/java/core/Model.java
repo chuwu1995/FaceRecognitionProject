@@ -26,10 +26,17 @@ import team19.java.util.PrepareTraining;
  * 
  */
 public class Model {
+	
 	private FaceRecognizer faceRecognizer;
 	private PrepareTraining prepareTraining;
+	// path
 	private static final String OUTPUT = "lib" + File.separator + "FaceRecognizer" + File.separator + "Model.xml";
+	// single mode
 	private static Model model;
+	
+	/**
+	 * override the default constructor to load the existing(images and data)
+	 */
 	private Model() {
 
 		File file = new File(OUTPUT);
@@ -44,7 +51,14 @@ public class Model {
 			
 
 	}
+
+
 	
+	/**
+	 * Singleton Pattern
+	 * 
+	 * @return the instance of model
+	 */
 	public static Model getInstance(){
 		if (model != null)
 			return model;
@@ -54,8 +68,11 @@ public class Model {
 	}
 
 	/**
-	 * @param args
-	 * @throws IOException
+	 * this function is used to recognize the face in the inputed image
+	 * 
+	 * @param face
+	 *            the mat type image that si going to be recognized
+	 * @return the ID number of the face
 	 */
 
 	public int predict(Mat face) {
@@ -64,6 +81,16 @@ public class Model {
 		return predictLabel;
 	}
 
+	/**
+	 * this function is used to recognize the face in src image
+	 * 
+	 * @param src
+	 *            the mat type image that contains faces
+	 * @param label
+	 *            an int array to store the predicted user id
+	 * @param confidence
+	 *            a confidence level set by user to control the accuracy
+	 */
 	public void predict(Mat src, int[] label, double[] confidence) {
 
 		faceRecognizer.predict(src, label, confidence);
@@ -91,7 +118,7 @@ public class Model {
 		// capabilities. It is based on your input data, so experiment with the
 		// number. Keeping 80 components should almost always be sufficient.
 
-//		FaceRecognizer faceRecognizer = LBPHFaceRecognizer.create(1, 8, 8, 8, 115);
+//		FaceRecognizer faceRecognizer = LBPHFaceRecognizer.create(1, 8, 8, 8, 90);
 
 		// radius The radius used for building the Circular Local Binary
 		// Pattern. The greater the radius, the smoother the image but more
@@ -122,16 +149,29 @@ public class Model {
 		System.out.println("model saved");
 		return faceRecognizer;
 	}
-
+	/**
+	 * load data to the file of OUTPUT path
+	 */
 	public void load() {
 		System.out.println("read:"+OUTPUT);
 		faceRecognizer.read(OUTPUT);
 	}
+	/**
+	 * write into the output file
+	 */
 
 	public void save(){
 		faceRecognizer.write(OUTPUT);
 	}
 	
+	/**
+	 * update the model trained before
+	 * 
+	 * @param imagesList
+	 *            newly added images for model training
+	 * @param label
+	 *            the corresponding label
+	 */
 	public void update(ArrayList<Mat> imagesList, int label){
 		ArrayList<Integer> labelsList = new ArrayList<Integer>();
 		for(int i=0;i<imagesList.size();i++)
@@ -142,38 +182,5 @@ public class Model {
 		faceRecognizer.update(imagesList, labelMat);
 		System.out.println("Face model updated");
 	}
-	
 
-//	public static void main(String[] c) {
-//		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-//		// new Model();
-////		FaceRecognizer faceRecognizer = LBPHFaceRecognizer.create(1, 8, 8, 8, 120);
-////		faceRecognizer.read("lib/FaceRecognizer/Model.xml");
-////		Mat image = Imgcodecs.imread("resource/TrainingPhoto/s1000000/1.jpg", Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-////		Mat image1 = Imgcodecs.imread("resource/TrainingPhoto/s1000000/2.jpg", Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-////		ArrayList<Mat> imagesList = new ArrayList<Mat>();
-////		imagesList.add(image);
-////		imagesList.add(image1);
-////		ArrayList<Integer> labelsList = new ArrayList<Integer>();
-////		for(int i=0;i<imagesList.size();i++)
-////			labelsList.add(2000);
-////		MatOfInt labelMat = new MatOfInt();
-////		labelMat.fromList(labelsList);
-////		
-////		System.out.println("1");
-////
-////		faceRecognizer.update(imagesList,labelMat);
-////		
-////		System.out.println("2");
-//
-//		Mat i = Imgcodecs.imread("/Users/wuchu/Desktop/me/10.jpg", Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-////		Mat i = Imgcodecs.imread("resource/TrainingPhoto/s1000000/1.jpg", Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-//
-//		
-//
-//		Detector d = new Detector();
-//		ArrayList<User> label = d.detectFace(i);
-//		System.out.println(label.get(0).toString());
-//	}
-	
 }

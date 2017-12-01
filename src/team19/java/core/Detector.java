@@ -33,6 +33,9 @@ public class Detector {
 	private Recognizer recognizer;
 	private boolean onlyDetect;
 
+	/**
+	 * override the default constructor to initialize the face classifier
+	 */
 	public Detector() {
 		this.faceCascade = new CascadeClassifier();
 		this.faceCascade.load("lib/FaceDetectionClassifier/lbpcascade_frontalface.xml");
@@ -48,12 +51,14 @@ public class Detector {
 	 * Method for face detection and tracking
 	 * 
 	 * @param frame
-	 *            it looks for faces in this frame
+	 *            it looks for faces in this frame return an array contains
+	 *            faces
+	 *
 	 */
 	public ArrayList<User> detectFace(Mat frame) {
 		if (frame.empty())
 			return null;
-		
+
 		MatOfRect faces = new MatOfRect();
 		Mat grayFrame = new Mat();
 
@@ -84,6 +89,13 @@ public class Detector {
 
 	}
 
+	/**
+	 * this is used to get images for training
+	 * 
+	 * @param image
+	 *            the catched image
+	 * @return the faces ready for training
+	 */
 	public Mat catchTrainingFaces(Mat image) {
 
 		MatOfRect faces = new MatOfRect();
@@ -101,7 +113,6 @@ public class Detector {
 
 		for (Rect i : facesArray) {
 			Rect roi = i;
-			// Mat face = new Mat();
 
 			Mat face = new Mat(image, roi);
 

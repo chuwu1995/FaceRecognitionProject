@@ -51,32 +51,41 @@ import team19.java.core.Detector;
 import team19.java.core.Model;
 import team19.java.util.ImageProcessing;
 import team19.java.util.PhotoExporter;
+import team19.java.util.WelcomeVoice;
 
 /**
- * face recognition function should be called in the grabFrame method
+ * Controller Class is used to control the user interface of the application.
+ * face recognition function should be called in the grabFrame method.
  * 
  * @author Chu Wu
  * 
  */
 public class Controller {
+	/**
+	 * Object which will be used later to implement functions
+	 */
 	private DBManager dbManager;
 	private Detector detector;
 	private Mat defaultProfile;
 
-	// Mia
-		@FXML
-		private Button pieChartBtn;
+	/**
+	 * FXML Object used in analytics
+	 */
+	@FXML
+	private Button pieChartBtn;
 
-		@FXML
-		private DatePicker startDate;
+	@FXML
+	private DatePicker startDate;
 
-		@FXML
-		private DatePicker endDate;
-		
-		@FXML
-		private Button barChartBtn;
+	@FXML
+	private DatePicker endDate;
 
-		
+	@FXML
+	private Button barChartBtn;
+
+	/**
+	 * FXML Object used in dashboard
+	 */
 	@FXML
 	private ImageView imageView;
 	@FXML
@@ -114,7 +123,9 @@ public class Controller {
 	@FXML
 	private Pane containerPane;
 
-	// add user pane
+	/**
+	 * FXML components in addUser pane
+	 */
 	@FXML
 	private Pane addUserPane;
 	@FXML
@@ -126,7 +137,6 @@ public class Controller {
 	@FXML
 	private Button submitUserBtn;
 
-	
 	@FXML
 	private Button catchImageBtn;
 	@FXML
@@ -141,7 +151,9 @@ public class Controller {
 	private boolean catchProfileImageFlag;
 	private boolean catchTrainingImageFlag;
 
-	// add record pane
+	/**
+	 * FXML components in addRecord pane
+	 */
 	@FXML
 	private Pane addRecordPane;
 	@FXML
@@ -152,12 +164,12 @@ public class Controller {
 	// user table
 	@FXML
 	private Button displayUsersBtn;
-	
+
 	// logo
-//	private ImageView logoImageView;
+	// private ImageView logoImageView;
 
 	// check if only one user is before the camera
-	private int currentUID;
+	private int currentUID = -1;
 
 	// a timer for acquiring the video stream
 	private ScheduledExecutorService timer;
@@ -168,7 +180,7 @@ public class Controller {
 	private boolean analyticActive;
 	private boolean addUserActive;
 	private boolean addRecordActive;
-	
+
 	private boolean profileCatched;
 	private boolean trainingPhotoCatched;
 
@@ -177,12 +189,11 @@ public class Controller {
 
 	// if discard a catched training image
 	private boolean discardTempTrainingPhotoFlag;
-	
+
 	ObservableList<String> reasonChoiceBoxItem = FXCollections.observableArrayList();
 
-
 	/**
-	 * Init the controller, at start time
+	 * Initial the controller at start time
 	 * 
 	 * @throws IOException
 	 */
@@ -190,10 +201,7 @@ public class Controller {
 	private void initialize() throws IOException {
 		// load opencv native library
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-//		System.out.println("dd: "+getClass().getResource("/resource/img/logo.jpg").toExternalForm());
-//		Image logo = new Image("file:resource/img/logo.jpg");
-//		logoImageView = new ImageView();
-//		logoImageView.setImage(logo);
+		
 
 		// initialize dbManager
 		dbManager = new DBManager();
@@ -226,20 +234,19 @@ public class Controller {
 
 	}
 
+	/**
+	 * start method of the fxml application
+	 */
 	@FXML
 	public void start() {
 
-
 		if (!this.cameraActive) {
-		
-			if(addUserActive) {
+
+			if (addUserActive) {
 				this.catchImageBtn.setDisable(false);
 				this.catchTrainingImageBtn.setDisable(false);
 			}
-				
 			
-			
-
 			// start the video capture
 			this.capture.open(0);
 
@@ -317,36 +324,38 @@ public class Controller {
 	public void addUser() throws IOException {
 
 		if (!addUserActive) {
-			setDashBoardToDefault();
+			if (currentUID == -1)
+				setDashBoardToDefault();
 
 			analyticBtn.setDisable(true);
 			addRecordBtn.setDisable(true);
 			addUserActive = true;
 			addUserPane.setVisible(true);
-			
+
 			submitUserBtn.setDisable(true);
-			
-			if(!cameraActive){
+
+			if (!cameraActive) {
 				catchImageBtn.setDisable(true);
 				catchTrainingImageBtn.setDisable(true);
 			}
-			
-			
-			
-			
-			
+
 		} else {
 
 			addUserActive = false;
 			addUserPane.setVisible(false);
-
 			analyticBtn.setDisable(false);
 			addRecordBtn.setDisable(false);
+			this.imageCatched.setImage(null);
+			 this.tempProfile = null;
+			 this.tempTrainingPhotos = new ArrayList<Mat>();
 
 		}
 
 	}
 
+	/**
+	 * controller method of discard button
+	 */
 	@FXML
 	public void discardTempTrainingPhoto() {
 		if (cameraActive) {
@@ -377,74 +386,87 @@ public class Controller {
 
 		}
 	}
+	
+	/**
+	 * click submit button in add Record pane call this method
+	 */
 
 	@FXML
 	public void submitRecord() {
 		String reason = reasonChoiceBox.getValue();
 		dbManager.getRecordDAO().insertRecord(currentUID, reason);
-		updateDashBoard(currentUID);
+		// *******************
+		if (currentUID != -1)
+			updateDashBoard(currentUID);
 
 	}
 
+	/**
+	 * click submit button call in add User pand this method
+	 */
 	@FXML
 	public void submitUser() {
-				
-		// user name, gender, program
-		String name = nameInput.getText();
-		if (name.length() > 25)
-			name = name.substring(0, 24);
-		if (name.length()==0) {
-			alert("WARNING","Incomplete Info","Please enter name!","WARNING");
-			return;
+		if (currentUID == -1) {
+			// user name, gender, program
+			String name = nameInput.getText();
+			if (name.length() > 25)
+				name = name.substring(0, 24);
+			if (name.length() == 0) {
+				alert("WARNING", "Incomplete Info", "Please enter name!", "WARNING");
+				return;
+
+			}
+
+			String gender = genderChoiceBox.getValue();
+			String program = programChoiceBox.getValue();
+
+			// insert user to USERS table
+			currentUID = dbManager.getUserDAO().insertUser(name, gender, program);
 
 		}
-			
-		String gender = genderChoiceBox.getValue();
-		String program = programChoiceBox.getValue();
-		
-		// insert user to USERS table
-		int insertedUID = dbManager.getUserDAO().insertUser(name, gender, program);
 
 		// export user profile
-		PhotoExporter.exportProfilePhoto(tempProfile,insertedUID);
-		setProfile(tempProfile);
-		
-		
-		System.out.println("profile:"+insertedUID);
+		if (tempProfile != null) {
+			PhotoExporter.exportProfilePhoto(tempProfile, currentUID);
+			setProfile(tempProfile);
+
+			System.out.println("profile:" + currentUID);
+		}
+
 		// export training photos
-		PhotoExporter.export(tempTrainingPhotos, insertedUID);
-		
-		
+		PhotoExporter.export(tempTrainingPhotos, currentUID);
+
 		// update facerecognizer
-		
-//		this.detector = new Detector();
-		
-		Model.getInstance().update(this.tempTrainingPhotos, insertedUID);
-		
-		
+
+		// this.detector = new Detector();
+
+		Model.getInstance().update(this.tempTrainingPhotos, currentUID);
+
 		// update dash board
-		updateDashBoard(insertedUID);
+		updateDashBoard(currentUID);
 
 		this.submitUserBtn.setDisable(true);
 		
-		this.setProfile(this.tempProfile);
-		this.setCatchImageView(defaultProfile);
-		
+		if(this.tempProfile != null)
+			this.setProfile(this.tempProfile);
+
+		this.setCatchImageView(null);
+
 		this.tempProfile = null;
 		this.tempTrainingPhotos = new ArrayList<Mat>();
-		
+
 		this.nameInput.clear();
 		this.genderChoiceBox.setValue("Male");
 		this.programChoiceBox.setValue("MISM");
 		this.setCatchImageView(defaultProfile);
 		this.tempTrainingPhotoNumberText.setText("");
 		this.discardBtn.setDisable(true);
-		
-		
+
 	}
 
-
-
+	/**
+	 * method to catch profile image
+	 */
 	@FXML
 	public void catchImage() {
 		if (cameraActive) {
@@ -453,6 +475,9 @@ public class Controller {
 		}
 	}
 
+	/**
+	 * method to catch training image
+	 */
 	public void catchTrainingImage() {
 		if (cameraActive) {
 			catchTrainingImageFlag = true;
@@ -490,15 +515,30 @@ public class Controller {
 
 				// if the frame is not empty, process it
 				if (!frame.empty()) {
+					// add faces
 					if (addUserActive) {
+						
+						System.out.println("Current UID: " + currentUID);
+						
+						if (currentUID == -1) {
+
+							nameInput.setDisable(false);
+							genderChoiceBox.setDisable(false);
+							programChoiceBox.setDisable(false);
+
+						} else {
+
+							nameInput.setDisable(true);
+							genderChoiceBox.setDisable(true);
+							programChoiceBox.setDisable(true);
+
+						}
 
 						if (catchProfileImageFlag) {
 							ImageProcessing.resize(frame, frame, ImageProcessing.size_92_112);
 							tempProfile = frame;
-							// exportProfilePhoto(frame,insertedUID);
-							setProfile(tempProfile);
+							this.setProfile(tempProfile);
 							this.setCatchImageView(tempProfile);
-							// Thread.sleep(1000);
 							catchProfileImageFlag = false;
 							profileCatched = true;
 						}
@@ -515,8 +555,8 @@ public class Controller {
 							trainingPhotoCatched = true;
 
 						}
-						
-						if(profileCatched && trainingPhotoCatched)
+
+						if (profileCatched && trainingPhotoCatched)
 							submitUserBtn.setDisable(false);
 
 						if (discardTempTrainingPhotoFlag) {
@@ -525,8 +565,8 @@ public class Controller {
 
 							if (photoIndex >= 0) {
 								tempTrainingPhotos.remove(photoIndex);
-								if(photoIndex>0)
-									setCatchImageView(tempTrainingPhotos.get(photoIndex-1));
+								if (photoIndex > 0)
+									setCatchImageView(tempTrainingPhotos.get(photoIndex - 1));
 								else {
 									setCatchImageView(defaultProfile);
 
@@ -534,21 +574,20 @@ public class Controller {
 
 							}
 
+							this.setProfile(defaultProfile);
+
 							tempTrainingPhotoNumberText.setText("Photo Number: " + tempTrainingPhotos.size());
 							discardTempTrainingPhotoFlag = false;
-
 						}
-
-					} else if (addRecordActive) {
-						
-						
-						
 
 					} else {
 						ArrayList<User> users = detector.detectFace(frame);
-						if(users!=null) {
+						if (users != null) {
 							if (users.size() >= 1) {
 								currentUID = users.get(0).getUID().getValue();
+								String name = users.get(0).getName().getValue();
+								WelcomeVoice.addToMap(name);
+
 								updateDashBoard(currentUID);
 
 							} else {
@@ -556,20 +595,18 @@ public class Controller {
 								setDashBoardToDefault();
 							}
 						}
-							
-						
+
 					}
 
-				
 				}
 
 			} catch (Exception e) {
-//				// log the (full) error
-//				System.err.println("Exception during the image elaboration: " + e);
+		
 			}
 		}
 
 		return frame;
+
 	}
 
 	/**
@@ -597,7 +634,7 @@ public class Controller {
 	 * initialize add record choice box.
 	 */
 	private void initSalaryChoiceBox() {
-		
+
 		reasonChoiceBoxItem.add("Meet With A Person");
 		reasonChoiceBoxItem.add("Retreive Something");
 		reasonChoiceBoxItem.add("Lost Registration");
@@ -607,6 +644,9 @@ public class Controller {
 		reasonChoiceBox.setItems(reasonChoiceBoxItem);
 	}
 
+	/**
+	 * initialize the gender choice box.
+	 */
 	private void initGenderChoiceBox() {
 		ObservableList<String> genderChoiceBoxItem = FXCollections.observableArrayList();
 		genderChoiceBoxItem.add("Male");
@@ -616,6 +656,9 @@ public class Controller {
 		genderChoiceBox.setItems(genderChoiceBoxItem);
 	}
 
+	/**
+	 * initialize the program choice box.
+	 */
 	private void initProgramChoiceBox() {
 		ObservableList<String> programChoiceBoxItem = FXCollections.observableArrayList();
 		programChoiceBoxItem.add("MISM");
@@ -626,21 +669,30 @@ public class Controller {
 		programChoiceBox.setItems(programChoiceBoxItem);
 	}
 
-
-	
-
-
+	/**
+	 * method to set the profile image
+	 * @param mat picture format
+	 */
 	private void setProfile(Mat mat) {
 
 		ImageProcessing.resize(mat, mat, ImageProcessing.size_150_200);
 		updateImageView(photo, ImageProcessing.mat2Image(mat));
 	}
 
+	/**
+	 * method to set training image
+	 * @param mat picture format
+	 */
 	private void setCatchImageView(Mat mat) {
-		ImageProcessing.resize(mat, mat, ImageProcessing.size_92_112);
-		updateImageView(imageCatched, ImageProcessing.mat2Image(mat));
+		if (mat != null) {
+			ImageProcessing.resize(mat, mat, ImageProcessing.size_92_112);
+			updateImageView(imageCatched, ImageProcessing.mat2Image(mat));
+		}
 	}
 
+	/**
+	 * method to set dash board to default
+	 */
 	private void setDashBoardToDefault() {
 		nameDashBoard.setText("");
 		genderDashBoard.setText("");
@@ -649,6 +701,9 @@ public class Controller {
 		setProfile(defaultProfile);
 	}
 
+	/**
+	 * method to set record dash board to default
+	 */
 	private void setRecordDashBoardToDefault() {
 		lastDate.setText("");
 		lastReason.setText("");
@@ -656,6 +711,9 @@ public class Controller {
 		recordTable.setItems(null);
 	}
 
+	/**
+	 * method to display user table
+	 */
 	@SuppressWarnings("unchecked")
 	@FXML
 	public void displayUsersTable() {
@@ -725,6 +783,9 @@ public class Controller {
 
 	}
 
+	/**
+	 * initialize the record table.
+	 */
 	private void initRecordTable() {
 
 		dateCol.setCellValueFactory(cellData -> cellData.getValue().getDate());
@@ -745,6 +806,10 @@ public class Controller {
 		recordTable.setItems(recordData);
 	}
 
+	/**
+	 * update the dash board.
+	 * @param uid userID
+	 */
 	private void updateDashBoard(int uid) {
 		User user = dbManager.getUserDAO().getUserByUID(uid).get(0);
 
@@ -758,7 +823,7 @@ public class Controller {
 		if (profileFile.exists()) {
 			profile = ImageProcessing.readImage(profilePath);
 		}
-		
+
 		setProfile(profile);
 
 		if (records.size() == 0) {
@@ -774,21 +839,39 @@ public class Controller {
 
 	}
 
+	/**
+	 * method to Set user Information on dash board 
+	 * @param name students's name
+	 * @param gender student's gender
+	 * @param program student's program
+	 */
 	private void setDashBoardUserInfo(String name, String gender, String program) {
 		nameDashBoard.setText(name);
 		genderDashBoard.setText(gender);
 		programDashBoard.setText(program);
 	}
 
+	/**
+	 * method to update user information on dash board.
+	 * @param record object of last record
+	 * @param count total number of record
+	 */
 	private void updateDashBoardRecordInfo(Record record, int count) {
 		lastDate.setText(record.getDate().getValue());
 		lastReason.setText(record.getReason().getValue());
 		visitCount.setText(String.valueOf(count));
 	}
-	
-	private void alert(String title, String header, String content, String type ){
+
+	/**
+	 * method of display alert to user.
+	 * @param title
+	 * @param header
+	 * @param content
+	 * @param type
+	 */
+	private void alert(String title, String header, String content, String type) {
 		Alert alert = null;
-		switch(type){
+		switch (type) {
 		case "WARNING":
 			alert = new Alert(Alert.AlertType.WARNING);
 		case "ERROR":
@@ -796,33 +879,34 @@ public class Controller {
 		default:
 			alert = new Alert(Alert.AlertType.INFORMATION);
 		}
-		
-		ButtonType close = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE );
+
+		ButtonType close = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
 
 		alert.getButtonTypes().setAll(close);
 		alert.setTitle(title);
 		alert.setHeaderText(header);
 		alert.setContentText(content);
-		
+
 		alert.showAndWait();
 	}
-	
+
 	String start;
 	String end;
+
 	/**
 	 * Mia get Date Range
 	 */
 	public ArrayList<Record> getDateRange() throws IOException {
 		// start date
-		if(startDate.getValue() != null) {
-		start = startDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-		}else {
+		if (startDate.getValue() != null) {
+			start = startDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		} else {
 			start = "2010-01-01";
 		}
 		// end date
-		if(endDate.getValue() != null) {
-		end = endDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-		}else {
+		if (endDate.getValue() != null) {
+			end = endDate.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		} else {
 			end = "2100-01-01";
 		}
 
@@ -830,7 +914,7 @@ public class Controller {
 
 		return recordByDateRange;
 	}
-	
+
 	/**
 	 * Mia pieChart button
 	 */
@@ -838,27 +922,30 @@ public class Controller {
 
 		// a new stage
 		Stage stage = new Stage();
-		stage.setTitle("Visiting Report by Genders");
+		stage.setTitle("Visiting Report by Reasons");
 		stage.setWidth(500);
 		stage.setHeight(500);
 		
 		ArrayList<Record> recordByDateRange = getDateRange();
-		int countFemale = 0;
-		int countMale = recordByDateRange.size() - countFemale;
-	
+		ArrayList<Integer> countReasons = new ArrayList<>(Arrays.asList(0,0,0,0));
+		
 		for (Record r : recordByDateRange) {
-			System.out.println(r.toString());
-			User u = dbManager.getUserDAO().getUserByUID(r.getUid().getValue()).get(0);			
-			if (u.getGender().getValue().equals("Female")) {
-				countFemale++;
-			}			
-
-			System.out.println(u.toString());
-		}
-
+			//User u = dbManager.getUserDAO().getUserByUID(r.getUid().getValue()).get(0);	
+			for (int i =0; i < reasonChoiceBoxItem.size(); i++) {
+			String reason = reasonChoiceBoxItem.get(i);
+			//System.out.println(r.toString());
+				if(r.getReason().getValue().equals(reason)){
+					int temp = countReasons.get(i);
+					countReasons.set(i, ++temp);
+				}
+				}
+			}
+		
 		// create pie chart
-		ObservableList<PieChart.Data> pieChartData = FXCollections
-				.observableArrayList(new PieChart.Data("Female", countFemale), new PieChart.Data("Male", countMale));
+		ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+		for(int i =0; i < reasonChoiceBoxItem.size(); i++) {
+			pieChartData.add(new PieChart.Data(reasonChoiceBoxItem.get(i), countReasons.get(i)));
+		}
 
 		final PieChart chart = new PieChart(pieChartData);
 		chart.setTitle("From " + start + " to " + end);
@@ -873,66 +960,60 @@ public class Controller {
 	/**
 	 * Mia barChart button
 	 */
+	@SuppressWarnings("unchecked")
 	public void showBarChart() throws IOException {
 		
 		ArrayList<Record> recordByDateRange = getDateRange();
-		
-		int countReason1 = 0, countReason2 = 0, countReason3 = 0, countReason4 = 0;
-		
-		String reason1 = reasonChoiceBoxItem.get(0);
-		String reason2 = reasonChoiceBoxItem.get(1);
-		String reason3 = reasonChoiceBoxItem.get(2);
-		String reason4 = reasonChoiceBoxItem.get(3);	
+		ArrayList<Integer> countFemale = new ArrayList<>(Arrays.asList(0,0,0,0));
+		ArrayList<Integer> countMale = new ArrayList<>(Arrays.asList(0,0,0,0));
 		
 		for (Record r : recordByDateRange) {
-			System.out.println(r.toString());
-				if(r.getReason().getValue().equals(reason1)){
-					countReason1++;
+			User u = dbManager.getUserDAO().getUserByUID(r.getUid().getValue()).get(0);	
+			for (int i =0; i < reasonChoiceBoxItem.size(); i++) {
+			String reason = reasonChoiceBoxItem.get(i);
+				if(r.getReason().getValue().equals(reason)){
+					if (u.getGender().getValue().equals("Female")) {
+						int temp = countFemale.get(i);
+						countFemale.set(i, ++temp);
+					}else {
+						int temp = countMale.get(i);
+						countMale.set(i, ++temp);
+					}
 				}
-				if(r.getReason().getValue().equals(reason2)){
-					countReason2++;
-				}
-				if(r.getReason().getValue().equals(reason3)){
-					countReason3++;
-				}
-				if(r.getReason().getValue().equals(reason4)){
-					countReason4++;
-				}
+			}
 		}
 
 		Stage stage = new Stage();
 	      //Defining the axes   
 	      CategoryAxis xAxis = new CategoryAxis();  
 	      xAxis.setCategories(FXCollections.<String>
-	      observableArrayList(Arrays.asList("")));
-	      xAxis.setLabel("Reasons");
+	      observableArrayList(Arrays.asList(reasonChoiceBoxItem.get(0),reasonChoiceBoxItem.get(1),reasonChoiceBoxItem.get(2),reasonChoiceBoxItem.get(3))));
+	      //xAxis.setLabel("Reasons");
 	       
 	      NumberAxis yAxis = new NumberAxis();
-	      yAxis.setLabel("Numbers");
+	      //yAxis.setLabel("Numbers");
 	     
 	      //Creating the Bar chart
 	      BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis); 
 	      barChart.setTitle("From " + start + " to " + end);
-	        
-	      //Prepare XYChart.Series objects by setting data       
-	      XYChart.Series<String, Number> series1 = new XYChart.Series<>();
-	      series1.setName(reasonChoiceBoxItem.get(0));
-	      series1.getData().add(new XYChart.Data<>("", countReason1));
-	        
-	      XYChart.Series<String, Number> series2 = new XYChart.Series<>();
-	      series2.setName(reasonChoiceBoxItem.get(1));
-	      series2.getData().add(new XYChart.Data<>("", countReason2));
-
-	      XYChart.Series<String, Number> series3 = new XYChart.Series<>();
-	      series3.setName(reasonChoiceBoxItem.get(2));
-	      series3.getData().add(new XYChart.Data<>("", countReason3));
 	      
-	      XYChart.Series<String, Number> series4 = new XYChart.Series<>();
-	      series4.setName(reasonChoiceBoxItem.get(3));
-	      series4.getData().add(new XYChart.Data<>("", countReason4));
-	              
+	      //Prepare XYChart.Series objects by setting data   
+	      XYChart.Series<String, Number> series1 = new XYChart.Series<>();
+	      series1.setName("Female");
+	      
+	      for(int i =0; i < reasonChoiceBoxItem.size(); i++) {		      
+		      series1.getData().add(new XYChart.Data<>(reasonChoiceBoxItem.get(i), countFemale.get(i)));
+	      }
+	      
+	      XYChart.Series<String, Number> series2 = new XYChart.Series<>();
+	      series2.setName("Male");
+	      
+	      for(int i =0; i < reasonChoiceBoxItem.size(); i++) {		      
+		      series2.getData().add(new XYChart.Data<>(reasonChoiceBoxItem.get(i), countMale.get(i)));
+	      }
+
 	      //Setting the data to bar chart       
-	      barChart.getData().addAll(series1, series2, series3,series4);
+	      barChart.getData().addAll(series1, series2);
 	        
 	      //Creating a Group object 
 	      Group root = new Group(barChart);
@@ -941,14 +1022,13 @@ public class Controller {
 	      Scene scene = new Scene(root, 600, 400);
 
 		//Setting title to the Stage
-	      stage.setTitle("Visiting Report by Reasons");
+	      stage.setTitle("Visiting Report by Gender");
 	        
 	      //Adding scene to the stage
 	      stage.setScene(scene);
 	        
 	      //Displaying the contents of the stage
-	      stage.show();  
-
-	}
+	      stage.show(); 
+		}
 
 }

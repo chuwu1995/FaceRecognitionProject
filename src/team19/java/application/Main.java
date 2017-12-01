@@ -10,8 +10,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.layout.HBox;
 
-
+/**
+ * Entry Class
+ * @author Chu Wu
+ *
+ */
 public class Main extends Application {
+	
 	@Override
 	public void start(Stage stage) {
 		try {

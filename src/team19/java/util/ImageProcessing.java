@@ -19,7 +19,10 @@ import javafx.scene.image.Image;
  *  
  */
 public class ImageProcessing {
+	// traning image size
 	public static Size size_92_112 = new Size(92,112);
+	// profile photo size
+
 	public static Size size_150_200 = new Size(150,200);
 
 	/**
@@ -71,15 +74,31 @@ public class ImageProcessing {
 		return image;
 	}
 	
+	/**
+	 * resize
+	 * @param src src image
+	 * @param dst dst image
+	 * @param dsize size
+	 */
 	public static void resize(Mat src, Mat dst, Size dsize){
 		Imgproc.resize(src, dst, dsize);
 	}
 	
+	/**
+	 * read image
+	 * @param path path
+	 * @return the image
+	 */
 	public static Mat readImage(String path) {
 		Mat image= Imgcodecs.imread(path);
 		return image;
 	}
 	
+	/**
+	 * read gray image 
+	 * @param path path
+	 * @return the gray image
+	 */
 	public static Mat readImageToGray(String path) {
 		Mat image= Imgcodecs.imread(path,Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 		return image;
